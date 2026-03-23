@@ -1,6 +1,6 @@
 import { LayoutDashboard, Users, ArrowLeft } from "lucide-react";
 
-export type AdminTab = "dashboard" | "users";
+export type AdminTab = "dashboard" | "users" | "shop";
 
 interface AdminBottomNavProps {
   activeTab: AdminTab;

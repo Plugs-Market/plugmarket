@@ -1,4 +1,4 @@
-import { Shield, Users } from "lucide-react";
+import { Shield, Users, Store } from "lucide-react";
 
 interface AdminDashboardProps {
   onNavigate?: (tab: string) => void;
@@ -22,6 +22,17 @@ const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
           </div>
           <span className="text-sm font-semibold text-foreground">Utilisateurs</span>
           <span className="text-xs text-muted-foreground">Gérer les comptes inscrits</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("shop")}
+          className="p-5 rounded-xl bg-card card-neon-border flex flex-col gap-3 text-left hover:neon-glow transition-shadow"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+            <Store size={20} className="text-primary" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">Boutique</span>
+          <span className="text-xs text-muted-foreground">Produits, menus & catégories</span>
         </button>
       </div>
     </div>
