@@ -31,7 +31,14 @@ function base64ToBytes(b64: string): Uint8Array {
 async function getAESKey(): Promise<CryptoKey> {
   const keyHex = Deno.env.get("AES_ENCRYPTION_KEY");
   if (!keyHex) throw new Error("AES_ENCRYPTION_KEY not set");
-  const keyBytes = hexToBytes(keyHex);
+  let keyBytes: Uint8Array;
+  if (/^[0-9a-fA-F]{64}$/.test(keyHex)) {
+    keyBytes = hexToBytes(keyHex);
+  } else {
+    const encoded = new TextEncoder().encode(keyHex);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+    keyBytes = new Uint8Array(hashBuffer);
+  }
   return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
