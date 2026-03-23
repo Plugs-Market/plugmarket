@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useShopData } from "@/hooks/useShopData";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Store, ArrowLeft, Plus, Trash2, Edit2, FolderTree, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -77,6 +79,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
   );
 };
 
+// --- Categories Section ---
 interface CatSectionProps {
   categories: { id: string; name: string; subcategories: { id: string; name: string }[] }[];
   onAdd: (name: string) => void;
@@ -88,6 +91,8 @@ interface CatSectionProps {
 
 const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, onDeleteSub }: CatSectionProps) => {
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddSubModal, setShowAddSubModal] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newSubName, setNewSubName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -95,17 +100,88 @@ const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, on
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Nouveau menu..."
-          className="flex-1 px-3 py-2 rounded-xl bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-        <Button size="sm" className="gap-1 shrink-0" onClick={() => { if (newName.trim()) { onAdd(newName); setNewName(""); } }}>
-          <Plus size={14} /> Ajouter
-        </Button>
-      </div>
+      <Button
+        className="w-full gap-2"
+        onClick={() => { setNewName(""); setShowAddModal(true); }}
+      >
+        <Plus size={16} /> Ajouter un menu
+      </Button>
+
+      {/* Add Menu Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouveau menu</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nom du menu..."
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newName.trim()) {
+                  onAdd(newName);
+                  setNewName("");
+                  setShowAddModal(false);
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>Annuler</Button>
+            <Button
+              disabled={!newName.trim()}
+              onClick={() => {
+                onAdd(newName);
+                setNewName("");
+                setShowAddModal(false);
+              }}
+            >
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Subcategory Modal */}
+      <Dialog open={!!showAddSubModal} onOpenChange={(open) => { if (!open) setShowAddSubModal(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouvelle sous-catégorie</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Input
+              value={newSubName}
+              onChange={(e) => setNewSubName(e.target.value)}
+              placeholder="Nom de la sous-catégorie..."
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newSubName.trim() && showAddSubModal) {
+                  onAddSub(showAddSubModal, newSubName);
+                  setNewSubName("");
+                  setShowAddSubModal(null);
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddSubModal(null)}>Annuler</Button>
+            <Button
+              disabled={!newSubName.trim()}
+              onClick={() => {
+                if (showAddSubModal) {
+                  onAddSub(showAddSubModal, newSubName);
+                  setNewSubName("");
+                  setShowAddSubModal(null);
+                }
+              }}
+            >
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-2">
         {categories.map((cat) => (
@@ -154,17 +230,14 @@ const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, on
             </button>
             {expandedCat === cat.id && (
               <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
-                <div className="flex gap-2">
-                  <input
-                    value={newSubName}
-                    onChange={(e) => setNewSubName(e.target.value)}
-                    placeholder="Nouvelle sous-catégorie..."
-                    className="flex-1 px-3 py-1.5 rounded-lg bg-secondary border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <Button size="sm" variant="ghost" className="gap-1 text-xs h-7" onClick={() => { if (newSubName.trim()) { onAddSub(cat.id, newSubName); setNewSubName(""); } }}>
-                    <Plus size={12} /> Ajouter
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 text-xs"
+                  onClick={() => { setNewSubName(""); setShowAddSubModal(cat.id); }}
+                >
+                  <Plus size={12} /> Ajouter sous-catégorie
+                </Button>
                 <div className="flex flex-wrap gap-2">
                   {cat.subcategories.map((sub) => (
                     <div key={sub.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs font-medium text-foreground">
@@ -184,6 +257,7 @@ const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, on
   );
 };
 
+// --- Farms Section ---
 interface FarmsSectionProps {
   farms: { id: string; name: string }[];
   onAdd: (name: string) => void;
@@ -192,23 +266,56 @@ interface FarmsSectionProps {
 }
 
 const FarmsSection = ({ farms, onAdd, onRename, onDelete }: FarmsSectionProps) => {
+  const [showAddModal, setShowAddModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Nouvelle catégorie..."
-          className="flex-1 px-3 py-2 rounded-xl bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-        <Button size="sm" className="gap-1 shrink-0" onClick={() => { if (newName.trim()) { onAdd(newName); setNewName(""); } }}>
-          <Plus size={14} /> Ajouter
-        </Button>
-      </div>
+      <Button
+        className="w-full gap-2"
+        onClick={() => { setNewName(""); setShowAddModal(true); }}
+      >
+        <Plus size={16} /> Ajouter une catégorie
+      </Button>
+
+      {/* Add Farm Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouvelle catégorie</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Nom de la catégorie..."
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newName.trim()) {
+                  onAdd(newName);
+                  setNewName("");
+                  setShowAddModal(false);
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>Annuler</Button>
+            <Button
+              disabled={!newName.trim()}
+              onClick={() => {
+                onAdd(newName);
+                setNewName("");
+                setShowAddModal(false);
+              }}
+            >
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-2">
         {farms.map((farm) => (
