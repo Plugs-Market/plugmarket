@@ -122,6 +122,29 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action, session_token } = body;
 
+    // --- SEED DATA (temporary) ---
+    if (action === "seed_encrypted_data") {
+      const seedCategories = ["Fleurs", "Résines", "Extraits", "Comestibles"];
+      const seedSubs: Record<string, string[]> = {
+        "Fleurs": ["Indoor", "Outdoor", "Greenhouse"],
+        "Résines": ["Hash", "Dry Sift", "Charas"],
+        "Extraits": ["Rosin", "BHO", "Distillat"],
+        "Comestibles": ["Gummies", "Chocolats", "Boissons"],
+      };
+      for (let i = 0; i < seedCategories.length; i++) {
+        const encName = await encryptAES(seedCategories[i]);
+        const { data: cat } = await supabase.from("categories").insert({ name: encName, sort_order: i + 1 }).select("id").single();
+        if (cat) {
+          const subs = seedSubs[seedCategories[i]] || [];
+          for (let j = 0; j < subs.length; j++) {
+            const encSub = await encryptAES(subs[j]);
+            await supabase.from("subcategories").insert({ category_id: cat.id, name: encSub, sort_order: j + 1 });
+          }
+        }
+      }
+      return okResponse();
+    }
+
     // --- READ (public, requires valid session) ---
     if (action === "get_shop_data") {
       const session = await validateSession(supabase, session_token || null);
