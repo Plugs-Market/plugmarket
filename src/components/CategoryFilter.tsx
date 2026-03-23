@@ -1,4 +1,4 @@
-import { categories, farms } from "@/data/products";
+import { useShopData } from "@/hooks/useShopData";
 
 interface CategoryFilterProps {
   selectedCategory: string;
@@ -17,7 +17,10 @@ const CategoryFilter = ({
   onFarmChange,
   onSubcategoryChange,
 }: CategoryFilterProps) => {
+  const { categories, farms, loading } = useShopData();
   const activeCategory = categories.find((c) => c.name === selectedCategory);
+
+  if (loading) return null;
 
   return (
     <div className="px-4 py-4 space-y-3">
@@ -32,7 +35,7 @@ const CategoryFilter = ({
         >
           <option value="">Tous les Menu</option>
           {categories.map((cat) => (
-            <option key={cat.name} value={cat.name}>
+            <option key={cat.id} value={cat.name}>
               {cat.name}
             </option>
           ))}
@@ -45,8 +48,8 @@ const CategoryFilter = ({
         >
           <option value="">Toutes les Catégories</option>
           {farms.map((farm) => (
-            <option key={farm} value={farm}>
-              {farm}
+            <option key={farm.id} value={farm.name}>
+              {farm.name}
             </option>
           ))}
         </select>
@@ -66,15 +69,15 @@ const CategoryFilter = ({
           </button>
           {activeCategory.subcategories.map((sub) => (
             <button
-              key={sub}
-              onClick={() => onSubcategoryChange(sub)}
+              key={sub.id}
+              onClick={() => onSubcategoryChange(sub.name)}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
-                selectedSubcategory === sub
+                selectedSubcategory === sub.name
                   ? "neon-gradient text-primary-foreground neon-shadow"
                   : "bg-secondary text-foreground border border-border hover:border-primary"
               }`}
             >
-              {sub}
+              {sub.name}
             </button>
           ))}
         </div>
