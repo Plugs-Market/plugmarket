@@ -17,6 +17,7 @@ export type Database = {
       app_users: {
         Row: {
           created_at: string
+          grade: string
           id: string
           password_hash: string
           seed_hash: string
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          grade?: string
           id?: string
           password_hash: string
           seed_hash: string
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          grade?: string
           id?: string
           password_hash?: string
           seed_hash?: string
