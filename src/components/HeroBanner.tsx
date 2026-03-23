@@ -5,7 +5,7 @@ const HeroBanner = () => {
         PLUGS MARKET
       </h1>
       <p className="text-muted-foreground text-xs sm:text-sm tracking-widest uppercase">
-        Premium Selection
+        APP DEMO
       </p>
     </div>
   );
