@@ -16,6 +16,12 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedFarm, setSelectedFarm] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const { ready, expand } = useTelegram();
+
+  useEffect(() => {
+    ready();
+    expand();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
