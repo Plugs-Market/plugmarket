@@ -282,6 +282,71 @@ Deno.serve(async (req) => {
       return okResponse();
     }
 
+    // --- PRODUCTS ---
+    if (action === "add_product") {
+      const { name, description, price, image_url, category_id, subcategory_id } = body;
+      if (!name?.trim()) return errResponse("Nom requis");
+      const encName = await encryptAES(name.trim());
+      const encDesc = description?.trim() ? await encryptAES(description.trim()) : null;
+      const { data: maxOrder } = await supabase.from("products").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+      const { error } = await supabase.from("products").insert({
+        name: encName,
+        description: encDesc,
+        price: price || 0,
+        image_url: image_url || null,
+        category_id: category_id || null,
+        subcategory_id: subcategory_id || null,
+        sort_order: (maxOrder?.sort_order ?? 0) + 1,
+      });
+      if (error) throw error;
+      return okResponse();
+    }
+
+    if (action === "update_product") {
+      const { id, name, description, price, image_url, category_id, subcategory_id } = body;
+      if (!id) return errResponse("ID manquant");
+      const updates: Record<string, unknown> = {};
+      if (name?.trim()) updates.name = await encryptAES(name.trim());
+      if (description !== undefined) updates.description = description?.trim() ? await encryptAES(description.trim()) : null;
+      if (price !== undefined) updates.price = price;
+      if (image_url !== undefined) updates.image_url = image_url;
+      if (category_id !== undefined) updates.category_id = category_id || null;
+      if (subcategory_id !== undefined) updates.subcategory_id = subcategory_id || null;
+      const { error } = await supabase.from("products").update(updates).eq("id", id);
+      if (error) throw error;
+      return okResponse();
+    }
+
+    if (action === "delete_product") {
+      const { id } = body;
+      if (!id) return errResponse("ID manquant");
+      // Delete image from storage if exists
+      const { data: product } = await supabase.from("products").select("image_url").eq("id", id).maybeSingle();
+      if (product?.image_url) {
+        const path = product.image_url.split("/product-images/")[1];
+        if (path) await supabase.storage.from("product-images").remove([path]);
+      }
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+      return okResponse();
+    }
+
+    if (action === "upload_product_image") {
+      const { image_base64, file_name, content_type } = body;
+      if (!image_base64 || !file_name) return errResponse("Image requise");
+      const binary = atob(image_base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const path = `${crypto.randomUUID()}-${file_name}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, bytes, { contentType: content_type || "image/jpeg" });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+      return new Response(
+        JSON.stringify({ success: true, url: urlData.publicUrl }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return errResponse("Action inconnue", 400);
   } catch (error) {
     console.error("Admin shop error:", error);
