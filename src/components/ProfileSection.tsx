@@ -89,6 +89,15 @@ const ProfileSection = () => {
         </div>
       </div>
       <div className="space-y-2">
+        {isAdmin && (
+          <button
+            onClick={() => setShowAdmin(true)}
+            className="w-full flex items-center gap-4 p-4 rounded-xl bg-primary/10 card-neon-border hover:neon-glow transition-shadow text-left border-primary/30"
+          >
+            <Shield className="text-primary" size={20} />
+            <span className="text-primary font-semibold">Panel Admin</span>
+          </button>
+        )}
         {menuItems.map(({ icon: Icon, label }) => (
           <button
             key={label}
