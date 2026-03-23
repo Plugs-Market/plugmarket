@@ -81,7 +81,7 @@ const Index = () => {
       )}
 
       {activeTab === "faq" && <FAQSection />}
-      {activeTab === "contact" && <ContactSection />}
+      {activeTab === "contact" && <ProfileSection />}
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
