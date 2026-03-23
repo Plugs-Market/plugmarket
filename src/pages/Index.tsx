@@ -1,11 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import CategoryFilter from "@/components/CategoryFilter";
 import ProductCard from "@/components/ProductCard";
 import BottomNav from "@/components/BottomNav";
 import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
+import ProfileSection from "@/components/ProfileSection";
 import { products } from "@/data/products";
+import { useTelegram } from "@/hooks/useTelegram";
 
 type Tab = "menu" | "reviews" | "faq" | "contact";
 
@@ -14,6 +16,12 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedFarm, setSelectedFarm] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const { ready, expand } = useTelegram();
+
+  useEffect(() => {
+    ready();
+    expand();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -73,7 +81,7 @@ const Index = () => {
       )}
 
       {activeTab === "faq" && <FAQSection />}
-      {activeTab === "contact" && <ContactSection />}
+      {activeTab === "contact" && <ProfileSection />}
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
