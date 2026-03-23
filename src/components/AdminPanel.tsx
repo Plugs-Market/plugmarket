@@ -25,8 +25,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (!user) return;
     setLoading(true);
     try {
+      const token = localStorage.getItem("plugs_market_token");
       const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "list_users", admin_id: user.id },
+        body: { action: "list_users", session_token: token },
       });
       if (error || !data?.success) {
         toast.error(data?.error || "Erreur lors du chargement");
