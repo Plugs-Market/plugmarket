@@ -69,7 +69,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
           onAddSub={async (category_id, name) => { if (await callAdmin("add_subcategory", { category_id, name })) { toast.success("Sous-catégorie ajoutée"); refetch(); } }}
           onDeleteSub={async (id) => { if (await callAdmin("delete_subcategory", { id })) { toast.success("Sous-catégorie supprimée"); refetch(); } }}
         />
-      ) : (
+      ) : activeSection === "farms" ? (
         <FarmsSection
           farms={farms}
           onAdd={async (name) => { if (await callAdmin("add_farm", { name })) { toast.success("Catégorie ajoutée"); refetch(); } }}
