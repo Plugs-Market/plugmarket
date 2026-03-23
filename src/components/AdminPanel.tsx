@@ -48,8 +48,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const updateGrade = async (targetId: string, newGrade: string) => {
     if (!user) return;
     try {
+      const token = localStorage.getItem("plugs_market_token");
       const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "update_grade", admin_id: user.id, target_user_id: targetId, new_grade: newGrade },
+        body: { action: "update_grade", session_token: token, target_user_id: targetId, new_grade: newGrade },
       });
       if (error || !data?.success) {
         toast.error(data?.error || "Erreur");
