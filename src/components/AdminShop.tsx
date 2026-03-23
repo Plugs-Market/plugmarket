@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Store, ArrowLeft, Plus, Trash2, Edit2, FolderTree, ChevronDown, ChevronUp } from "lucide-react";
+import { Store, ArrowLeft, Plus, Trash2, Edit2, FolderTree, ChevronDown, ChevronUp, Package } from "lucide-react";
 import { toast } from "sonner";
+import AdminProductsSection from "@/components/AdminProductsSection";
 
 const AdminShop = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
