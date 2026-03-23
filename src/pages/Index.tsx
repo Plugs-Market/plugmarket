@@ -25,7 +25,7 @@ const Index = () => {
   }, [selectedCategory, selectedFarm, selectedSubcategory]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       <HeroBanner />
 
       {activeTab === "menu" && (
@@ -41,10 +41,10 @@ const Index = () => {
 
           <div className="px-4">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground">
-                Produits disponibles
-              </h1>
-              <span className="text-primary text-sm font-medium">
+              <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">
+                Produits
+              </h2>
+              <span className="text-primary text-sm font-semibold">
                 {filteredProducts.length} résultats
               </span>
             </div>

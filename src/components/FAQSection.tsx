@@ -14,8 +14,8 @@ const faqs = [
 
 const FAQSection = () => {
   return (
-    <div className="px-4 py-6 pb-24 max-w-2xl mx-auto">
-      <h2 className="font-display text-2xl font-bold gold-text mb-6">
+    <div className="px-4 py-6 pb-28 max-w-2xl mx-auto">
+      <h2 className="font-display text-2xl font-bold neon-text mb-6">
         Questions fréquentes
       </h2>
       <Accordion type="single" collapsible className="space-y-3">
@@ -23,7 +23,7 @@ const FAQSection = () => {
           <AccordionItem
             key={i}
             value={`faq-${i}`}
-            className="card-gold-border rounded-lg bg-card px-4"
+            className="card-neon-border rounded-xl bg-card px-4"
           >
             <AccordionTrigger className="text-foreground text-sm font-medium hover:text-primary">
               {faq.q}
