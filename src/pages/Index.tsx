@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import CategoryFilter from "@/components/CategoryFilter";
 import ProductCard from "@/components/ProductCard";
@@ -7,7 +7,6 @@ import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
 import ProfileSection from "@/components/ProfileSection";
 import { products } from "@/data/products";
-import { useTelegram } from "@/hooks/useTelegram";
 
 type Tab = "menu" | "reviews" | "faq" | "contact";
 
