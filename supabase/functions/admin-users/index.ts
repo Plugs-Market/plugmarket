@@ -54,11 +54,9 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Extract session token from Authorization header
-    const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.replace("Bearer ", "").trim() || null;
+    const { action, target_user_id, new_grade, session_token } = await req.json();
 
-    const admin = await validateSession(supabase, token);
+    const admin = await validateSession(supabase, session_token || null);
 
     if (!admin || admin.grade !== "Admin") {
       return new Response(
@@ -66,8 +64,6 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const { action, target_user_id, new_grade } = await req.json();
 
     if (action === "list_users") {
       const { data: users, error } = await supabase

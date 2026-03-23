@@ -68,8 +68,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (!user) return;
     if (!confirm(`Supprimer le compte "${username}" ? Cette action est irréversible.`)) return;
     try {
+      const token = localStorage.getItem("plugs_market_token");
       const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "delete_user", admin_id: user.id, target_user_id: targetId },
+        body: { action: "delete_user", session_token: token, target_user_id: targetId },
       });
       if (error || !data?.success) {
         toast.error(data?.error || "Erreur");
