@@ -16,7 +16,7 @@ const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   ];
 
   return (
-    <nav className="fixed bottom-4 left-4 right-4 z-50">
+    <nav className="fixed bottom-6 left-4 right-4 z-50">
       <div className="max-w-lg mx-auto rounded-2xl bg-card/80 backdrop-blur-xl card-neon-border neon-glow">
         <div className="flex justify-around items-center h-16">
           {tabs.map(({ id, label, icon: Icon }) => (
