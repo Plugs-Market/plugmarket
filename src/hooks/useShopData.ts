@@ -27,8 +27,8 @@ export interface DBProduct {
   description: string | null;
   price: number;
   image_url: string | null;
-  category_id: string | null;
-  subcategory_id: string | null;
+  category_ids: string[];
+  subcategory_ids: string[];
   sort_order: number;
 }
 
@@ -36,11 +36,9 @@ async function fetchShopPayload() {
   const { data, error } = await supabase.functions.invoke("admin-shop", {
     body: { action: "get_public_shop_data" },
   });
-
   if (error || !data?.success) {
     throw new Error(error?.message || data?.error || "Shop data fetch failed");
   }
-
   return data;
 }
 
@@ -63,15 +61,11 @@ export function useShopData() {
           break;
         } catch (err) {
           lastError = err as Error;
-          if (attempt < 2) {
-            await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
-          }
+          if (attempt < 2) await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
         }
       }
 
-      if (!data) {
-        throw lastError || new Error("Shop data fetch failed");
-      }
+      if (!data) throw lastError || new Error("Shop data fetch failed");
 
       const cats: DBCategory[] = (data.categories || []).map((c: any) => ({
         id: c.id,
@@ -79,34 +73,21 @@ export function useShopData() {
         sort_order: c.sort_order,
         subcategories: (data.subcategories || [])
           .filter((s: any) => s.category_id === c.id)
-          .map((s: any) => ({
-            id: s.id,
-            category_id: s.category_id,
-            name: s.name,
-            sort_order: s.sort_order,
-          })),
+          .map((s: any) => ({ id: s.id, category_id: s.category_id, name: s.name, sort_order: s.sort_order })),
       }));
 
       setCategories(cats);
-      setFarms(
-        (data.farms || []).map((f: any) => ({
-          id: f.id,
-          name: f.name,
-          sort_order: f.sort_order,
-        })),
-      );
-      setProducts(
-        (data.products || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          price: Number(p.price),
-          image_url: p.image_url,
-          category_id: p.category_id,
-          subcategory_id: p.subcategory_id,
-          sort_order: p.sort_order,
-        })),
-      );
+      setFarms((data.farms || []).map((f: any) => ({ id: f.id, name: f.name, sort_order: f.sort_order })));
+      setProducts((data.products || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        price: Number(p.price),
+        image_url: p.image_url,
+        category_ids: p.category_ids || [],
+        subcategory_ids: p.subcategory_ids || [],
+        sort_order: p.sort_order,
+      })));
     } catch (error) {
       console.error("Shop data fetch error:", error);
       setCategories([]);
