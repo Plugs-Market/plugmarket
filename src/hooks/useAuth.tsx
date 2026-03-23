@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AppUser {
   id: string;
   username: string;
+  grade: string;
 }
 
 interface AuthContextType {
