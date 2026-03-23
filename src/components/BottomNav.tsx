@@ -1,6 +1,6 @@
 import { Home, Star, HelpCircle, User } from "lucide-react";
 
-type Tab = "menu" | "faq" | "contact";
+type Tab = "menu" | "reviews" | "faq" | "contact";
 
 interface BottomNavProps {
   activeTab: Tab;
