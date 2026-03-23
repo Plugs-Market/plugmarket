@@ -12,7 +12,7 @@ import AdminProductsSection from "@/components/AdminProductsSection";
 const AdminShop = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
   const { categories, farms, products, loading, refetch } = useShopData();
-  const [activeSection, setActiveSection] = useState<"categories" | "farms" | "products">("categories");
+  const [activeSection, setActiveSection] = useState<"categories" | "products">("categories");
 
   if (user?.grade !== "Admin") return null;
 
