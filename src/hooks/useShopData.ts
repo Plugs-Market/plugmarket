@@ -21,15 +21,26 @@ export interface DBFarm {
   sort_order: number;
 }
 
+export interface DBProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  category_id: string | null;
+  subcategory_id: string | null;
+  sort_order: number;
+}
+
 export function useShopData() {
   const [categories, setCategories] = useState<DBCategory[]>([]);
   const [farms, setFarms] = useState<DBFarm[]>([]);
+  const [products, setProducts] = useState<DBProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch via edge function to get decrypted data
       const { data, error } = await supabase.functions.invoke("admin-shop", {
         body: { action: "get_public_shop_data" },
       });
@@ -38,6 +49,7 @@ export function useShopData() {
         console.error("Shop data fetch error:", error || data?.error);
         setCategories([]);
         setFarms([]);
+        setProducts([]);
         return;
       }
 
@@ -52,6 +64,16 @@ export function useShopData() {
 
       setCategories(cats);
       setFarms((data.farms || []).map((f: any) => ({ id: f.id, name: f.name, sort_order: f.sort_order })));
+      setProducts((data.products || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        price: Number(p.price),
+        image_url: p.image_url,
+        category_id: p.category_id,
+        subcategory_id: p.subcategory_id,
+        sort_order: p.sort_order,
+      })));
     } catch {
       // silent
     } finally {
@@ -63,5 +85,5 @@ export function useShopData() {
     fetchData();
   }, [fetchData]);
 
-  return { categories, farms, loading, refetch: fetchData };
+  return { categories, farms, products, loading, refetch: fetchData };
 }

@@ -5,13 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Store, ArrowLeft, Plus, Trash2, Edit2, FolderTree, ChevronDown, ChevronUp } from "lucide-react";
+import { Store, ArrowLeft, Plus, Trash2, Edit2, FolderTree, ChevronDown, ChevronUp, Package } from "lucide-react";
 import { toast } from "sonner";
+import AdminProductsSection from "@/components/AdminProductsSection";
 
 const AdminShop = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
-  const { categories, farms, loading, refetch } = useShopData();
-  const [activeSection, setActiveSection] = useState<"categories" | "farms">("categories");
+  const { categories, farms, products, loading, refetch } = useShopData();
+  const [activeSection, setActiveSection] = useState<"categories" | "farms" | "products">("categories");
 
   if (user?.grade !== "Admin") return null;
 
@@ -41,6 +42,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
         {[
           { id: "categories" as const, label: "Menus" },
           { id: "farms" as const, label: "Catégories" },
+          { id: "products" as const, label: "Produits" },
         ].map(({ id, label }) => (
           <button
             key={id}
@@ -67,13 +69,15 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
           onAddSub={async (category_id, name) => { if (await callAdmin("add_subcategory", { category_id, name })) { toast.success("Sous-catégorie ajoutée"); refetch(); } }}
           onDeleteSub={async (id) => { if (await callAdmin("delete_subcategory", { id })) { toast.success("Sous-catégorie supprimée"); refetch(); } }}
         />
-      ) : (
+      ) : activeSection === "farms" ? (
         <FarmsSection
           farms={farms}
           onAdd={async (name) => { if (await callAdmin("add_farm", { name })) { toast.success("Catégorie ajoutée"); refetch(); } }}
           onRename={async (id, name) => { if (await callAdmin("rename_farm", { id, name })) { toast.success("Catégorie renommée"); refetch(); } }}
           onDelete={async (id) => { if (await callAdmin("delete_farm", { id })) { toast.success("Catégorie supprimée"); refetch(); } }}
         />
+      ) : (
+        <AdminProductsSection products={products} categories={categories} onRefetch={refetch} />
       )}
     </div>
   );
