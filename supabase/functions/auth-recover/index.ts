@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-async function hashValue(value: string): Promise<string> {
+async function hashSHA256(value: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(value);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -16,6 +17,33 @@ async function hashValue(value: string): Promise<string> {
 
 function normalizeSeedPhrase(seedPhrase: string): string {
   return seedPhrase.trim().toLowerCase().split(/\s+/).join(" ");
+}
+
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MINUTES = 15;
+
+async function checkRateLimit(supabase: ReturnType<typeof createClient>, key: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString();
+  await supabase.from("rate_limits").delete().lt("window_start", windowStart);
+
+  const { data, error } = await supabase
+    .from("rate_limits")
+    .select("id, attempts")
+    .eq("key", key)
+    .gte("window_start", windowStart)
+    .maybeSingle();
+
+  if (error) return false;
+
+  if (!data) {
+    await supabase.from("rate_limits").insert({ key, attempts: 1, window_start: new Date().toISOString() });
+    return false;
+  }
+
+  if (data.attempts >= RATE_LIMIT_MAX) return true;
+
+  await supabase.from("rate_limits").update({ attempts: data.attempts + 1 }).eq("id", data.id);
+  return false;
 }
 
 Deno.serve(async (req) => {
@@ -57,7 +85,17 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const seedHash = await hashValue(normalizeSeedPhrase(seedPhrase));
+    // Rate limit recovery attempts
+    const rateLimitKey = `recover:${await hashSHA256(seedPhrase.substring(0, 20))}`;
+    const isLimited = await checkRateLimit(supabase, rateLimitKey);
+    if (isLimited) {
+      return new Response(
+        JSON.stringify({ error: "Trop de tentatives. Réessayez dans 15 minutes." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const seedHash = await hashSHA256(normalizeSeedPhrase(seedPhrase));
 
     const { data: user, error: userError } = await supabase
       .from("app_users")
@@ -103,7 +141,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    const newPasswordHash = await hashValue(newPassword);
+    // Use bcrypt for new password
+    const newPasswordHash = await bcrypt.hash(newPassword);
 
     const updatePayload: {
       password_hash: string;
@@ -136,13 +175,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Invalidate all existing sessions for this user
+    await supabase.from("session_tokens").delete().eq("user_id", user.id);
+
     return new Response(
       JSON.stringify({
         success: true,
-        user: {
-          id: updatedUser.id,
-          username: updatedUser.username,
-        },
+        user: { id: updatedUser.id, username: updatedUser.username },
         message: "Compte mis à jour avec succès",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

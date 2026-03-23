@@ -25,8 +25,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (!user) return;
     setLoading(true);
     try {
+      const token = localStorage.getItem("plugs_market_token");
       const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "list_users", admin_id: user.id },
+        body: { action: "list_users", session_token: token },
       });
       if (error || !data?.success) {
         toast.error(data?.error || "Erreur lors du chargement");
@@ -47,8 +48,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const updateGrade = async (targetId: string, newGrade: string) => {
     if (!user) return;
     try {
+      const token = localStorage.getItem("plugs_market_token");
       const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "update_grade", admin_id: user.id, target_user_id: targetId, new_grade: newGrade },
+        body: { action: "update_grade", session_token: token, target_user_id: targetId, new_grade: newGrade },
       });
       if (error || !data?.success) {
         toast.error(data?.error || "Erreur");
@@ -66,8 +68,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (!user) return;
     if (!confirm(`Supprimer le compte "${username}" ? Cette action est irréversible.`)) return;
     try {
+      const token = localStorage.getItem("plugs_market_token");
       const { data, error } = await supabase.functions.invoke("admin-users", {
-        body: { action: "delete_user", admin_id: user.id, target_user_id: targetId },
+        body: { action: "delete_user", session_token: token, target_user_id: targetId },
       });
       if (error || !data?.success) {
         toast.error(data?.error || "Erreur");
