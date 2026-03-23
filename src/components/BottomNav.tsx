@@ -11,7 +11,7 @@ const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const tabs: { id: Tab; label: string; icon: typeof Home }[] = [
     { id: "menu", label: "Home", icon: Home },
     { id: "faq", label: "Infos", icon: HelpCircle },
-    { id: "contact", label: "Contact", icon: Mail },
+    { id: "contact", label: "Profil", icon: User },
   ];
 
   return (
