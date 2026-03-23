@@ -52,7 +52,7 @@ const Index = () => {
             onSubcategoryChange={setSelectedSubcategoryId}
           />
 
-          <div className="px-4">
+          <div className="px-4 mb-[25px]">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">
                 Produits
