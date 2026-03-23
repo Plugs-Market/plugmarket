@@ -105,9 +105,15 @@ Deno.serve(async (req) => {
 
     // Support both bcrypt and legacy SHA-256 hashes
     let passwordValid = false;
+    console.log("Login attempt for:", user.username, "hash prefix:", user.password_hash.substring(0, 7), "hash length:", user.password_hash.length, "password length:", password.length);
     if (user.password_hash.startsWith("$2")) {
       // bcrypt hash
-      passwordValid = bcrypt.compareSync(password, user.password_hash);
+      try {
+        passwordValid = bcrypt.compareSync(password, user.password_hash);
+        console.log("bcrypt compareSync result:", passwordValid);
+      } catch (e) {
+        console.error("bcrypt compareSync error:", e);
+      }
     } else {
       // Legacy SHA-256 — verify then migrate to bcrypt
       const encoder = new TextEncoder();
