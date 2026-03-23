@@ -1,19 +1,23 @@
-export interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  language_code?: string;
-  photo_url?: string;
-}
+import { useState, useEffect } from "react";
+import { getTelegramUser, loadTelegramScript, telegramReady, telegramExpand, type TelegramUser } from "@/lib/telegram";
 
 export function useTelegram() {
-  const tg = (window as any).Telegram?.WebApp;
-  const user: TelegramUser | undefined = tg?.initDataUnsafe?.user;
-  const isTelegram = !!tg?.initData && !!user;
+  const [user, setUser] = useState<TelegramUser | undefined>(undefined);
+  const [isTelegram, setIsTelegram] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const ready = () => tg?.ready?.();
-  const expand = () => tg?.expand?.();
+  useEffect(() => {
+    loadTelegramScript().then(() => {
+      const result = getTelegramUser();
+      setUser(result.user);
+      setIsTelegram(result.isTelegram);
+      if (result.isTelegram) {
+        telegramReady();
+        telegramExpand();
+      }
+      setLoading(false);
+    });
+  }, []);
 
-  return { tg, user, isTelegram, ready, expand };
+  return { user, isTelegram, loading };
 }
