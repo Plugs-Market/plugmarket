@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTelegram } from "@/hooks/useTelegram";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,13 @@ const AuthModal = ({ open, onOpenChange, defaultView = "login" }: AuthModalProps
   const { user: telegramUser, isTelegram } = useTelegram();
 
   const [view, setView] = useState<AuthView>(resolveInitialView(defaultView));
+
+  useEffect(() => {
+    if (open) {
+      setView(resolveInitialView(defaultView));
+    }
+  }, [open, defaultView]);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,9 +61,10 @@ const AuthModal = ({ open, onOpenChange, defaultView = "login" }: AuthModalProps
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      reset();
+    if (nextOpen) {
       setView(resolveInitialView(defaultView));
+    } else {
+      reset();
     }
     onOpenChange(nextOpen);
   };
