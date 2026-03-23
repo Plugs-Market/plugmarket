@@ -1,0 +1,1 @@
+UPDATE app_users SET password_hash = '$2b$10$TofDxV.y0VbRHhft0WznoONnn4Qs1QXmr6j4NmWvcUQjLS2U1yUcO' WHERE username = 'plugs market';
