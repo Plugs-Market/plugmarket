@@ -10,11 +10,11 @@ const ProductPage = () => {
   const { products, categories, loading } = useShopData();
 
   const product = products.find((p) => p.id === id);
-  const category = product?.category_id
-    ? categories.find((c) => c.id === product.category_id)
-    : null;
-  const subcategory = category?.subcategories.find(
-    (s) => s.id === product?.subcategory_id,
+  const productCategories = product
+    ? categories.filter((c) => product.category_ids.includes(c.id))
+    : [];
+  const productSubcategories = productCategories.flatMap((c) =>
+    c.subcategories.filter((s) => product?.subcategory_ids.includes(s.id)),
   );
 
   if (loading) {
@@ -72,18 +72,18 @@ const ProductPage = () => {
           </span>
         </div>
 
-        {(category || subcategory) && (
+        {(productCategories.length > 0 || productSubcategories.length > 0) && (
           <div className="flex flex-wrap gap-2">
-            {category && (
-              <span className="px-3 py-1 rounded-full bg-secondary text-xs font-medium text-foreground border border-border">
-                {category.name}
+            {productCategories.map((c) => (
+              <span key={c.id} className="px-3 py-1 rounded-full bg-secondary text-xs font-medium text-foreground border border-border">
+                {c.name}
               </span>
-            )}
-            {subcategory && (
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary border border-primary/20">
-                {subcategory.name}
+            ))}
+            {productSubcategories.map((s) => (
+              <span key={s.id} className="px-3 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary border border-primary/20">
+                {s.name}
               </span>
-            )}
+            ))}
           </div>
         )}
 

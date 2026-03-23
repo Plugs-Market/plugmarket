@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DBProduct, DBCategory } from "@/hooks/useShopData";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit2, Package, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, ImageIcon, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,10 +15,28 @@ interface Props {
   onRefetch: () => void;
 }
 
+interface ProductForm {
+  name: string;
+  description: string;
+  price: string;
+  image_url: string;
+  category_ids: string[];
+  subcategory_ids: string[];
+}
+
+const emptyForm: ProductForm = {
+  name: "",
+  description: "",
+  price: "",
+  image_url: "",
+  category_ids: [],
+  subcategory_ids: [],
+};
+
 const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState<DBProduct | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", price: "", category_id: "", subcategory_id: "", image_url: "" });
+  const [form, setForm] = useState<ProductForm>(emptyForm);
   const [uploading, setUploading] = useState(false);
 
   const callAdmin = async (action: string, extra: Record<string, unknown> = {}) => {
@@ -35,7 +53,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
 
   const openAdd = () => {
     setEditProduct(null);
-    setForm({ name: "", description: "", price: "", category_id: "", subcategory_id: "", image_url: "" });
+    setForm(emptyForm);
     setShowModal(true);
   };
 
@@ -45,9 +63,9 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       name: p.name,
       description: p.description || "",
       price: String(p.price),
-      category_id: p.category_id || "",
-      subcategory_id: p.subcategory_id || "",
       image_url: p.image_url || "",
+      category_ids: [...p.category_ids],
+      subcategory_ids: [...p.subcategory_ids],
     });
     setShowModal(true);
   };
@@ -82,6 +100,31 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     }
   };
 
+  const toggleCategoryId = (id: string) => {
+    setForm((f) => {
+      const has = f.category_ids.includes(id);
+      const newCatIds = has ? f.category_ids.filter((c) => c !== id) : [...f.category_ids, id];
+      // Remove subcategories that no longer belong to selected categories
+      const validSubCatIds = categories
+        .filter((c) => newCatIds.includes(c.id))
+        .flatMap((c) => c.subcategories.map((s) => s.id));
+      return {
+        ...f,
+        category_ids: newCatIds,
+        subcategory_ids: f.subcategory_ids.filter((s) => validSubCatIds.includes(s)),
+      };
+    });
+  };
+
+  const toggleSubcategoryId = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      subcategory_ids: f.subcategory_ids.includes(id)
+        ? f.subcategory_ids.filter((s) => s !== id)
+        : [...f.subcategory_ids, id],
+    }));
+  };
+
   const handleSave = async () => {
     if (!form.name.trim()) return;
     const payload = {
@@ -89,8 +132,8 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: form.description || null,
       price: parseFloat(form.price) || 0,
       image_url: form.image_url || null,
-      category_id: form.category_id || null,
-      subcategory_id: form.subcategory_id || null,
+      category_ids: form.category_ids,
+      subcategory_ids: form.subcategory_ids,
     };
 
     if (editProduct) {
@@ -111,7 +154,12 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     onRefetch();
   };
 
-  const selectedCat = categories.find((c) => c.id === form.category_id);
+  // Get available subcategories from selected categories
+  const availableSubcategories = useMemo(() => {
+    return categories
+      .filter((c) => form.category_ids.includes(c.id))
+      .flatMap((c) => c.subcategories.map((s) => ({ ...s, categoryName: c.name })));
+  }, [categories, form.category_ids]);
 
   return (
     <div className="space-y-4">
@@ -146,36 +194,66 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
               min="0"
             />
 
-            {/* Category */}
-            <Select
-              value={form.category_id}
-              onValueChange={(v) => setForm((f) => ({ ...f, category_id: v, subcategory_id: "" }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Menu (optionnel)" />
-              </SelectTrigger>
-              <SelectContent>
+            {/* Multi-select Menus */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Menus</label>
+              <div className="space-y-1.5 max-h-32 overflow-y-auto rounded-lg border border-border p-2">
                 {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  <label key={c.id} className="flex items-center gap-2 cursor-pointer py-1 px-1 rounded hover:bg-secondary transition-colors">
+                    <Checkbox
+                      checked={form.category_ids.includes(c.id)}
+                      onCheckedChange={() => toggleCategoryId(c.id)}
+                    />
+                    <span className="text-sm text-foreground">{c.name}</span>
+                  </label>
                 ))}
-              </SelectContent>
-            </Select>
+                {categories.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-1">Aucun menu</p>
+                )}
+              </div>
+            </div>
 
-            {/* Subcategory */}
-            {selectedCat && selectedCat.subcategories.length > 0 && (
-              <Select
-                value={form.subcategory_id}
-                onValueChange={(v) => setForm((f) => ({ ...f, subcategory_id: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sous-catégorie (optionnel)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectedCat.subcategories.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            {/* Multi-select Sous-catégories */}
+            {availableSubcategories.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Sous-catégories</label>
+                <div className="space-y-1.5 max-h-32 overflow-y-auto rounded-lg border border-border p-2">
+                  {availableSubcategories.map((s) => (
+                    <label key={s.id} className="flex items-center gap-2 cursor-pointer py-1 px-1 rounded hover:bg-secondary transition-colors">
+                      <Checkbox
+                        checked={form.subcategory_ids.includes(s.id)}
+                        onCheckedChange={() => toggleSubcategoryId(s.id)}
+                      />
+                      <span className="text-sm text-foreground">{s.name}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">{s.categoryName}</span>
+                    </label>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Selected tags preview */}
+            {(form.category_ids.length > 0 || form.subcategory_ids.length > 0) && (
+              <div className="flex flex-wrap gap-1.5">
+                {form.category_ids.map((cid) => {
+                  const cat = categories.find((c) => c.id === cid);
+                  return cat ? (
+                    <span key={cid} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium border border-primary/20">
+                      {cat.name}
+                      <button onClick={() => toggleCategoryId(cid)} className="hover:text-destructive"><X size={10} /></button>
+                    </span>
+                  ) : null;
+                })}
+                {form.subcategory_ids.map((sid) => {
+                  const sub = availableSubcategories.find((s) => s.id === sid);
+                  return sub ? (
+                    <span key={sid} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-secondary text-foreground text-[10px] font-medium border border-border">
+                      {sub.name}
+                      <button onClick={() => toggleSubcategoryId(sid)} className="hover:text-destructive"><X size={10} /></button>
+                    </span>
+                  ) : null;
+                })}
+              </div>
             )}
 
             {/* Image */}
