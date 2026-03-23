@@ -7,7 +7,7 @@ import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
 import { products } from "@/data/products";
 
-type Tab = "menu" | "faq" | "contact";
+type Tab = "menu" | "reviews" | "faq" | "contact";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("menu");
