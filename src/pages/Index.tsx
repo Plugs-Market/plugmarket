@@ -16,7 +16,7 @@ const Index = () => {
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
   const [showAdmin, setShowAdmin] = useState(false);
 
-  const { categories, products, loading } = useShopData();
+  const { categories, products, loading, refetch } = useShopData();
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -30,7 +30,10 @@ const Index = () => {
     return (
       <ProfileSection
         showAdminPanel={true}
-        onAdminBack={() => setShowAdmin(false)}
+        onAdminBack={() => {
+          setShowAdmin(false);
+          refetch();
+        }}
       />
     );
   }
