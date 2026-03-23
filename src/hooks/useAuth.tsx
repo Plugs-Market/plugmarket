@@ -9,9 +9,15 @@ interface AppUser {
 interface AuthContextType {
   user: AppUser | null;
   loading: boolean;
+  generateSeed: () => Promise<{ success: boolean; seed_phrase?: string; error?: string }>;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (username: string, password: string) => Promise<{ success: boolean; seed_phrase?: string; error?: string }>;
-  recover: (seedPhrase: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  register: (username: string, password: string, seedPhrase: string) => Promise<{ success: boolean; error?: string }>;
+  recover: (
+    seedPhrase: string,
+    newPassword: string,
+    newUsername?: string,
+    telegramId?: number,
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
@@ -31,6 +37,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const generateSeed = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("auth-register", {
+        body: { action: "generate_seed" },
+      });
+
+      if (error || !data?.success) {
+        return { success: false, error: data?.error || "Erreur lors de la génération" };
+      }
+
+      return { success: true, seed_phrase: data.seed_phrase };
+    } catch {
+      return { success: false, error: "Erreur lors de la génération" };
+    }
+  };
+
   const login = async (username: string, password: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("auth-login", {
@@ -49,24 +71,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, password: string) => {
+  const register = async (username: string, password: string, seedPhrase: string) => {
     try {
       const { data, error } = await supabase.functions.invoke("auth-register", {
-        body: { username, password },
+        body: { username, password, seed_phrase: seedPhrase },
       });
       if (error || !data?.success) {
         return { success: false, error: data?.error || "Erreur lors de l'inscription" };
       }
-      return { success: true, seed_phrase: data.seed_phrase };
+      return { success: true };
     } catch {
       return { success: false, error: "Erreur lors de l'inscription" };
     }
   };
 
-  const recover = async (seedPhrase: string, newPassword: string) => {
+  const recover = async (
+    seedPhrase: string,
+    newPassword: string,
+    newUsername?: string,
+    telegramId?: number,
+  ) => {
     try {
+      const body: Record<string, unknown> = {
+        seed_phrase: seedPhrase,
+        new_password: newPassword,
+      };
+
+      if (newUsername?.trim()) {
+        body.new_username = newUsername.trim();
+      }
+
+      if (typeof telegramId === "number") {
+        body.new_telegram_id = telegramId;
+      }
+
       const { data, error } = await supabase.functions.invoke("auth-recover", {
-        body: { seed_phrase: seedPhrase, new_password: newPassword },
+        body,
       });
       if (error || !data?.success) {
         return { success: false, error: data?.error || "Erreur de récupération" };
@@ -84,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, recover, logout }}>
+    <AuthContext.Provider value={{ user, loading, generateSeed, login, register, recover, logout }}>
       {children}
     </AuthContext.Provider>
   );
