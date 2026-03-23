@@ -2,13 +2,19 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User, LogIn, UserPlus, Settings, ShoppingBag, Heart, Bell, LogOut } from "lucide-react";
+import { User, LogIn, UserPlus, Settings, ShoppingBag, Heart, Bell, LogOut, Shield } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
+import AdminPanel from "@/components/AdminPanel";
 
 const ProfileSection = () => {
   const { user: appUser, loading: authLoading, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<"login" | "register">("login");
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  if (showAdmin && appUser?.grade === "Admin") {
+    return <AdminPanel onBack={() => setShowAdmin(false)} />;
+  }
 
   if (authLoading) {
     return (
@@ -64,6 +70,8 @@ const ProfileSection = () => {
     { icon: Settings, label: "Paramètres" },
   ];
 
+  const isAdmin = appUser.grade === "Admin";
+
   return (
     <div className="px-4 py-6 pb-28 max-w-2xl mx-auto">
       <h2 className="font-display text-2xl font-bold neon-text mb-6">Mon Profil</h2>
@@ -81,6 +89,15 @@ const ProfileSection = () => {
         </div>
       </div>
       <div className="space-y-2">
+        {isAdmin && (
+          <button
+            onClick={() => setShowAdmin(true)}
+            className="w-full flex items-center gap-4 p-4 rounded-xl bg-primary/10 card-neon-border hover:neon-glow transition-shadow text-left border-primary/30"
+          >
+            <Shield className="text-primary" size={20} />
+            <span className="text-primary font-semibold">Panel Admin</span>
+          </button>
+        )}
         {menuItems.map(({ icon: Icon, label }) => (
           <button
             key={label}
