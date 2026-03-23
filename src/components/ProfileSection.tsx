@@ -70,6 +70,8 @@ const ProfileSection = () => {
     { icon: Settings, label: "Paramètres" },
   ];
 
+  const isAdmin = appUser.grade === "Admin";
+
   return (
     <div className="px-4 py-6 pb-28 max-w-2xl mx-auto">
       <h2 className="font-display text-2xl font-bold neon-text mb-6">Mon Profil</h2>
