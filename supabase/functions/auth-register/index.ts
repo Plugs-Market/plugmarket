@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
     }
 
     // Use bcrypt for password, SHA-256 for seed (seed is high-entropy, doesn't need bcrypt)
-    const passwordHash = await bcrypt.hash(password);
+    const passwordHash = bcrypt.hashSync(password, 10);
     const seedHash = await hashSHA256(normalizedSeed);
 
     const { data: existingSeed, error: seedCheckError } = await supabase

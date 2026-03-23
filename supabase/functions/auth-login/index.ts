@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       if (sha256Hash === user.password_hash) {
         passwordValid = true;
         // Migrate to bcrypt
-        const bcryptHash = await bcrypt.hash(password);
+        const bcryptHash = bcrypt.hashSync(password, 10);
         await supabase.from("app_users").update({ password_hash: bcryptHash }).eq("id", user.id);
       }
     }

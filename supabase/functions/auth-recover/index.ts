@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     }
 
     // Use bcrypt for new password
-    const newPasswordHash = await bcrypt.hash(newPassword);
+    const newPasswordHash = bcrypt.hashSync(newPassword, 10);
 
     const updatePayload: {
       password_hash: string;
