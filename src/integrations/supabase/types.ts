@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_users: {
+        Row: {
+          created_at: string
+          id: string
+          password_hash: string
+          seed_hash: string
+          telegram_id: number | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password_hash: string
+          seed_hash: string
+          telegram_id?: number | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password_hash?: string
+          seed_hash?: string
+          telegram_id?: number | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
