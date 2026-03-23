@@ -30,6 +30,12 @@ const AuthModal = ({ open, onOpenChange, defaultView = "login" }: AuthModalProps
   const { user: telegramUser, isTelegram } = useTelegram();
 
   const [view, setView] = useState<AuthView>(resolveInitialView(defaultView));
+
+  // Sync view when defaultView changes and modal opens
+  useState(() => {
+    // This runs on mount only; we use useEffect below for updates
+  });
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,9 +60,10 @@ const AuthModal = ({ open, onOpenChange, defaultView = "login" }: AuthModalProps
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      reset();
+    if (nextOpen) {
       setView(resolveInitialView(defaultView));
+    } else {
+      reset();
     }
     onOpenChange(nextOpen);
   };
