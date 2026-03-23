@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "https://esm.sh/bcryptjs@2.4.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     let passwordValid = false;
     if (user.password_hash.startsWith("$2")) {
       // bcrypt hash
-      passwordValid = await bcrypt.compare(password, user.password_hash);
+      passwordValid = bcrypt.compareSync(password, user.password_hash);
     } else {
       // Legacy SHA-256 — verify then migrate to bcrypt
       const encoder = new TextEncoder();
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       if (sha256Hash === user.password_hash) {
         passwordValid = true;
         // Migrate to bcrypt
-        const bcryptHash = await bcrypt.hash(password);
+        const bcryptHash = bcrypt.hashSync(password, 10);
         await supabase.from("app_users").update({ password_hash: bcryptHash }).eq("id", user.id);
       }
     }

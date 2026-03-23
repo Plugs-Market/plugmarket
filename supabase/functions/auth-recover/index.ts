@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "https://esm.sh/bcryptjs@2.4.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
     }
 
     // Use bcrypt for new password
-    const newPasswordHash = await bcrypt.hash(newPassword);
+    const newPasswordHash = bcrypt.hashSync(newPassword, 10);
 
     const updatePayload: {
       password_hash: string;

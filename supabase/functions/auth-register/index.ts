@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import bcrypt from "https://esm.sh/bcryptjs@2.4.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
     }
 
     // Use bcrypt for password, SHA-256 for seed (seed is high-entropy, doesn't need bcrypt)
-    const passwordHash = await bcrypt.hash(password);
+    const passwordHash = bcrypt.hashSync(password, 10);
     const seedHash = await hashSHA256(normalizedSeed);
 
     const { data: existingSeed, error: seedCheckError } = await supabase
