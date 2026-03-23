@@ -14,24 +14,40 @@ async function hashValue(value: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+function normalizeSeedPhrase(seedPhrase: string): string {
+  return seedPhrase.trim().toLowerCase().split(/\s+/).join(" ");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { seed_phrase, new_password } = await req.json();
+    const payload = await req.json();
+    const seedPhrase = typeof payload?.seed_phrase === "string" ? payload.seed_phrase : "";
+    const newPassword = typeof payload?.new_password === "string" ? payload.new_password : "";
+    const newUsernameRaw = typeof payload?.new_username === "string" ? payload.new_username : "";
+    const newTelegramId = typeof payload?.new_telegram_id === "number" ? payload.new_telegram_id : undefined;
 
-    if (!seed_phrase || !new_password) {
+    if (!seedPhrase || !newPassword) {
       return new Response(
         JSON.stringify({ error: "Phrase de récupération et nouveau mot de passe requis" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (new_password.length < 8) {
+    if (newPassword.length < 8) {
       return new Response(
         JSON.stringify({ error: "Le mot de passe doit contenir au moins 8 caractères" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const normalizedUsername = newUsernameRaw.toLowerCase().trim();
+    if (normalizedUsername && (normalizedUsername.length < 3 || normalizedUsername.length > 30)) {
+      return new Response(
+        JSON.stringify({ error: "Le pseudo doit contenir entre 3 et 30 caractères" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -41,13 +57,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const seedHash = await hashValue(seed_phrase.trim().toLowerCase());
+    const seedHash = await hashValue(normalizeSeedPhrase(seedPhrase));
 
-    const { data: user } = await supabase
+    const { data: user, error: userError } = await supabase
       .from("app_users")
       .select("id, username")
       .eq("seed_hash", seedHash)
       .maybeSingle();
+
+    if (userError) {
+      console.error("Recovery user lookup error:", userError);
+      return new Response(
+        JSON.stringify({ error: "Erreur lors de la vérification de la phrase" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!user) {
       return new Response(
@@ -56,14 +80,56 @@ Deno.serve(async (req) => {
       );
     }
 
-    const newPasswordHash = await hashValue(new_password);
+    if (normalizedUsername && normalizedUsername !== user.username) {
+      const { data: existingUsername, error: usernameCheckError } = await supabase
+        .from("app_users")
+        .select("id")
+        .eq("username", normalizedUsername)
+        .maybeSingle();
 
-    const { error: updateError } = await supabase
+      if (usernameCheckError) {
+        console.error("Recovery username check error:", usernameCheckError);
+        return new Response(
+          JSON.stringify({ error: "Erreur lors de la vérification du pseudo" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (existingUsername) {
+        return new Response(
+          JSON.stringify({ error: "Ce pseudo est déjà pris" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const newPasswordHash = await hashValue(newPassword);
+
+    const updatePayload: {
+      password_hash: string;
+      username?: string;
+      telegram_id?: number;
+    } = {
+      password_hash: newPasswordHash,
+    };
+
+    if (normalizedUsername) {
+      updatePayload.username = normalizedUsername;
+    }
+
+    if (typeof newTelegramId === "number") {
+      updatePayload.telegram_id = newTelegramId;
+    }
+
+    const { data: updatedUser, error: updateError } = await supabase
       .from("app_users")
-      .update({ password_hash: newPasswordHash })
-      .eq("id", user.id);
+      .update(updatePayload)
+      .eq("id", user.id)
+      .select("id, username")
+      .single();
 
     if (updateError) {
+      console.error("Recovery update error:", updateError);
       return new Response(
         JSON.stringify({ error: "Erreur lors de la mise à jour" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -73,8 +139,11 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        user: { id: user.id, username: user.username },
-        message: "Mot de passe mis à jour avec succès",
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.username,
+        },
+        message: "Compte mis à jour avec succès",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

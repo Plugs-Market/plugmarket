@@ -7,7 +7,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// BIP39-inspired French wordlist (256 words for seed generation)
 const WORDLIST = [
   "abandon","abricot","acier","adresse","aérer","agiter","aider","ajouter","alarme","album",
   "algue","amour","ancien","animal","anneau","aperçu","appel","arbre","argent","armure",
@@ -43,6 +42,10 @@ function generateSeedPhrase(): string {
     .join(" ");
 }
 
+function normalizeSeedPhrase(seedPhrase: string): string {
+  return seedPhrase.trim().toLowerCase().split(/\s+/).join(" ");
+}
+
 async function hashValue(value: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(value);
@@ -51,22 +54,70 @@ async function hashValue(value: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+async function generateUniqueSeedPhrase(supabase: ReturnType<typeof createClient>): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const seedPhrase = generateSeedPhrase();
+    const seedHash = await hashValue(seedPhrase);
+
+    const { data: existingSeed, error } = await supabase
+      .from("app_users")
+      .select("id")
+      .eq("seed_hash", seedHash)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Seed uniqueness check error:", error);
+      throw new Error("seed_check_failed");
+    }
+
+    if (!existingSeed) {
+      return seedPhrase;
+    }
+  }
+
+  throw new Error("seed_generation_failed");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { username, password } = await req.json();
+    const payload = await req.json();
 
-    if (!username || !password) {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    if (payload?.action === "generate_seed") {
+      const seedPhrase = await generateUniqueSeedPhrase(supabase);
+
       return new Response(
-        JSON.stringify({ error: "Pseudo et mot de passe requis" }),
+        JSON.stringify({
+          success: true,
+          seed_phrase: seedPhrase,
+          message: "Phrase de récupération générée",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const username = typeof payload?.username === "string" ? payload.username : "";
+    const password = typeof payload?.password === "string" ? payload.password : "";
+    const seedPhrase = typeof payload?.seed_phrase === "string" ? payload.seed_phrase : "";
+    const telegramId = typeof payload?.telegram_id === "number" ? payload.telegram_id : null;
+
+    if (!username || !password || !seedPhrase) {
+      return new Response(
+        JSON.stringify({ error: "Pseudo, mot de passe et phrase de récupération requis" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (username.length < 3 || username.length > 30) {
+    const normalizedUsername = username.toLowerCase().trim();
+    if (normalizedUsername.length < 3 || normalizedUsername.length > 30) {
       return new Response(
         JSON.stringify({ error: "Le pseudo doit contenir entre 3 et 30 caractères" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -80,38 +131,76 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const normalizedSeed = normalizeSeedPhrase(seedPhrase);
+    const words = normalizedSeed.split(" ");
+    if (words.length !== 16) {
+      return new Response(
+        JSON.stringify({ error: "La phrase de récupération doit contenir exactement 16 mots" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Check if username already exists
-    const { data: existing } = await supabase
+    const { data: existingUsername, error: usernameCheckError } = await supabase
       .from("app_users")
       .select("id")
-      .eq("username", username.toLowerCase().trim())
+      .eq("username", normalizedUsername)
       .maybeSingle();
 
-    if (existing) {
+    if (usernameCheckError) {
+      console.error("Username check error:", usernameCheckError);
+      return new Response(
+        JSON.stringify({ error: "Erreur lors de la vérification du pseudo" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (existingUsername) {
       return new Response(
         JSON.stringify({ error: "Ce pseudo est déjà pris" }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Generate seed phrase
-    const seedPhrase = generateSeedPhrase();
-
-    // Hash password and seed phrase
     const passwordHash = await hashValue(password);
-    const seedHash = await hashValue(seedPhrase);
+    const seedHash = await hashValue(normalizedSeed);
 
-    // Insert user
-    const { error: insertError } = await supabase.from("app_users").insert({
-      username: username.toLowerCase().trim(),
+    const { data: existingSeed, error: seedCheckError } = await supabase
+      .from("app_users")
+      .select("id")
+      .eq("seed_hash", seedHash)
+      .maybeSingle();
+
+    if (seedCheckError) {
+      console.error("Seed check error:", seedCheckError);
+      return new Response(
+        JSON.stringify({ error: "Erreur lors de la vérification de la phrase" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (existingSeed) {
+      return new Response(
+        JSON.stringify({ error: "Cette phrase de récupération est déjà utilisée" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const insertPayload: {
+      username: string;
+      password_hash: string;
+      seed_hash: string;
+      telegram_id?: number;
+    } = {
+      username: normalizedUsername,
       password_hash: passwordHash,
       seed_hash: seedHash,
-    });
+    };
+
+    if (typeof telegramId === "number") {
+      insertPayload.telegram_id = telegramId;
+    }
+
+    const { error: insertError } = await supabase.from("app_users").insert(insertPayload);
 
     if (insertError) {
       console.error("Insert error:", insertError);
@@ -121,12 +210,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Return seed phrase (shown only once to user)
     return new Response(
       JSON.stringify({
         success: true,
-        seed_phrase: seedPhrase,
-        message: "Compte créé avec succès. Sauvegardez votre phrase de récupération !",
+        message: "Compte créé avec succès",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
