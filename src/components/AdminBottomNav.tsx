@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, ArrowLeft, Smartphone } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeft } from "lucide-react";
 
-export type AdminTab = "dashboard" | "users" | "app";
+export type AdminTab = "dashboard" | "users";
 
 interface AdminBottomNavProps {
   activeTab: AdminTab;
@@ -12,7 +12,6 @@ const AdminBottomNav = ({ activeTab, onTabChange, onBack }: AdminBottomNavProps)
   const tabs: { id: AdminTab; label: string; icon: typeof LayoutDashboard }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
-    { id: "app", label: "App", icon: Smartphone },
   ];
 
   return (
