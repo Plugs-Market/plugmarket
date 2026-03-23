@@ -30,7 +30,7 @@ const CategoryFilter = ({
           }}
           className="w-full rounded-xl bg-secondary border border-border px-4 py-3 text-foreground text-sm font-medium appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
         >
-          <option value="">Nos menus</option>
+          <option value="">Menu</option>
           {categories.map((cat) => (
             <option key={cat.name} value={cat.name}>
               {cat.name}
