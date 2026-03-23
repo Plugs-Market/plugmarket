@@ -1,16 +1,76 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useMemo } from "react";
+import HeroBanner from "@/components/HeroBanner";
+import CategoryFilter from "@/components/CategoryFilter";
+import ProductCard from "@/components/ProductCard";
+import BottomNav from "@/components/BottomNav";
+import FAQSection from "@/components/FAQSection";
+import ContactSection from "@/components/ContactSection";
+import { products } from "@/data/products";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+type Tab = "menu" | "faq" | "contact";
+
+const Index = () => {
+  const [activeTab, setActiveTab] = useState<Tab>("menu");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedFarm, setSelectedFarm] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      if (selectedCategory && p.category !== selectedCategory) return false;
+      if (selectedFarm && p.farm !== selectedFarm) return false;
+      if (selectedSubcategory && p.subcategory !== selectedSubcategory) return false;
+      return true;
+    });
+  }, [selectedCategory, selectedFarm, selectedSubcategory]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen bg-background pb-20">
+      <HeroBanner />
+
+      {activeTab === "menu" && (
+        <>
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            selectedFarm={selectedFarm}
+            selectedSubcategory={selectedSubcategory}
+            onCategoryChange={setSelectedCategory}
+            onFarmChange={setSelectedFarm}
+            onSubcategoryChange={setSelectedSubcategory}
+          />
+
+          <div className="px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground">
+                Produits disponibles
+              </h1>
+              <span className="text-primary text-sm font-medium">
+                {filteredProducts.length} résultats
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+              {filteredProducts.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-lg">Aucun produit trouvé</p>
+                <p className="text-sm mt-1">Essayez de modifier vos filtres</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {activeTab === "faq" && <FAQSection />}
+      {activeTab === "contact" && <ContactSection />}
+
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
