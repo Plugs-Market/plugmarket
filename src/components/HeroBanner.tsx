@@ -1,15 +1,12 @@
-import logo from "@/assets/logo.png";
-
 const HeroBanner = () => {
   return (
-    <div className="w-full bg-secondary py-8 px-4 flex items-center justify-center">
-      <img
-        src={logo}
-        alt="All Farmz"
-        width={800}
-        height={512}
-        className="w-48 sm:w-64 md:w-80 h-auto"
-      />
+    <div className="w-full bg-secondary py-10 px-4 flex flex-col items-center justify-center gap-2">
+      <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-black tracking-wider neon-text">
+        PLUGS MARKET
+      </h1>
+      <p className="text-muted-foreground text-xs sm:text-sm tracking-widest uppercase">
+        Premium Selection
+      </p>
     </div>
   );
 };

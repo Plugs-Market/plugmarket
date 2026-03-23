@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Cinzel", "serif"],
+        display: ["Orbitron", "sans-serif"],
         body: ["Inter", "sans-serif"],
       },
       colors: {
@@ -50,11 +50,6 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        gold: {
-          DEFAULT: "hsl(var(--primary))",
-          glow: "hsl(var(--gold-glow))",
-          dim: "hsl(var(--gold-dim))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
