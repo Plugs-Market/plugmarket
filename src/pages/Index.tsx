@@ -30,7 +30,10 @@ const Index = () => {
     return (
       <ProfileSection
         showAdminPanel={true}
-        onAdminBack={() => setShowAdmin(false)}
+        onAdminBack={() => {
+          setShowAdmin(false);
+          refetch();
+        }}
       />
     );
   }
