@@ -8,14 +8,6 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
 
-  const handleTabChange = (tab: AdminTab) => {
-    if (tab === "app") {
-      onBack();
-      return;
-    }
-    setActiveTab(tab);
-  };
-
   if (user?.grade !== "Admin") {
     return (
       <div className="px-4 py-6 pb-28 max-w-2xl mx-auto text-center">
