@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     let passwordValid = false;
     if (user.password_hash.startsWith("$2")) {
       // bcrypt hash
-      passwordValid = await bcrypt.compare(password, user.password_hash);
+      passwordValid = bcrypt.compareSync(password, user.password_hash);
     } else {
       // Legacy SHA-256 — verify then migrate to bcrypt
       const encoder = new TextEncoder();
