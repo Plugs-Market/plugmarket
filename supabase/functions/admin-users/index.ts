@@ -65,6 +65,32 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "get_stats") {
+      const { data: users, error } = await supabase
+        .from("app_users")
+        .select("grade, telegram_id, created_at");
+
+      if (error) throw error;
+
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const stats = {
+        totalUsers: users.length,
+        admins: users.filter((u: { grade: string }) => u.grade === "Admin").length,
+        vips: users.filter((u: { grade: string }) => u.grade === "VIP").length,
+        moderators: users.filter((u: { grade: string }) => u.grade === "Moderateur").length,
+        members: users.filter((u: { grade: string }) => u.grade === "membre").length,
+        recentSignups: users.filter((u: { created_at: string }) => new Date(u.created_at) >= sevenDaysAgo).length,
+        telegramLinked: users.filter((u: { telegram_id: number | null }) => u.telegram_id !== null).length,
+      };
+
+      return new Response(
+        JSON.stringify({ success: true, stats }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "list_users") {
       const { data: users, error } = await supabase
         .from("app_users")
