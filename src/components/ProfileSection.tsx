@@ -10,6 +10,11 @@ const ProfileSection = () => {
   const { user: appUser, loading: authLoading, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<"login" | "register">("login");
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  if (showAdmin && appUser?.grade === "Admin") {
+    return <AdminPanel onBack={() => setShowAdmin(false)} />;
+  }
 
   if (authLoading) {
     return (
