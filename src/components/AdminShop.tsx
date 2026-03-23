@@ -76,6 +76,8 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
           onRename={async (id, name) => { if (await callAdmin("rename_farm", { id, name })) { toast.success("Catégorie renommée"); refetch(); } }}
           onDelete={async (id) => { if (await callAdmin("delete_farm", { id })) { toast.success("Catégorie supprimée"); refetch(); } }}
         />
+      ) : (
+        <AdminProductsSection products={products} categories={categories} onRefetch={refetch} />
       )}
     </div>
   );
