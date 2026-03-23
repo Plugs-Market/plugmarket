@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeft, Store, LucideIcon } from "lucide-react";
 
 export type AdminTab = "dashboard" | "users" | "shop";
 
@@ -8,11 +8,15 @@ interface AdminBottomNavProps {
   onBack: () => void;
 }
 
+const TAB_META: Record<AdminTab, { label: string; icon: LucideIcon }> = {
+  dashboard: { label: "Dashboard", icon: LayoutDashboard },
+  users: { label: "Users", icon: Users },
+  shop: { label: "Boutique", icon: Store },
+};
+
 const AdminBottomNav = ({ activeTab, onTabChange, onBack }: AdminBottomNavProps) => {
-  const tabs: { id: AdminTab; label: string; icon: typeof LayoutDashboard }[] = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "users", label: "Users", icon: Users },
-  ];
+  // Dynamic right tab: show current page tab if not on dashboard, otherwise nothing
+  const rightTab = activeTab !== "dashboard" ? activeTab : null;
 
   return (
     <nav className="fixed bottom-6 left-4 right-4 z-50">
@@ -25,20 +29,31 @@ const AdminBottomNav = ({ activeTab, onTabChange, onBack }: AdminBottomNavProps)
             <ArrowLeft size={20} />
             <span className="text-[10px] font-semibold tracking-wide uppercase">Retour</span>
           </button>
-          {tabs.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => onTabChange(id)}
-              className={`flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-300 ${
-                activeTab === id
-                  ? "text-primary neon-shadow"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon size={20} />
-              <span className="text-[10px] font-semibold tracking-wide uppercase">{label}</span>
-            </button>
-          ))}
+
+          <button
+            onClick={() => onTabChange("dashboard")}
+            className={`flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-300 ${
+              activeTab === "dashboard"
+                ? "text-primary neon-shadow"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-[10px] font-semibold tracking-wide uppercase">Dashboard</span>
+          </button>
+
+          {rightTab && (() => {
+            const { label, icon: Icon } = TAB_META[rightTab];
+            return (
+              <button
+                onClick={() => onTabChange(rightTab)}
+                className="flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-300 text-primary neon-shadow"
+              >
+                <Icon size={20} />
+                <span className="text-[10px] font-semibold tracking-wide uppercase">{label}</span>
+              </button>
+            );
+          })()}
         </div>
       </div>
     </nav>
