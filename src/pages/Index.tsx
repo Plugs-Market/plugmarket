@@ -20,8 +20,8 @@ const Index = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      if (selectedCategoryId && p.category_id !== selectedCategoryId) return false;
-      if (selectedSubcategoryId && p.subcategory_id !== selectedSubcategoryId) return false;
+      if (selectedCategoryId && !p.category_ids.includes(selectedCategoryId)) return false;
+      if (selectedSubcategoryId && !p.subcategory_ids.includes(selectedSubcategoryId)) return false;
       return true;
     });
   }, [products, selectedCategoryId, selectedSubcategoryId]);

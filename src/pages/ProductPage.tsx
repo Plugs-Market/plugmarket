@@ -10,11 +10,11 @@ const ProductPage = () => {
   const { products, categories, loading } = useShopData();
 
   const product = products.find((p) => p.id === id);
-  const category = product?.category_id
-    ? categories.find((c) => c.id === product.category_id)
-    : null;
-  const subcategory = category?.subcategories.find(
-    (s) => s.id === product?.subcategory_id,
+  const productCategories = product
+    ? categories.filter((c) => product.category_ids.includes(c.id))
+    : [];
+  const productSubcategories = productCategories.flatMap((c) =>
+    c.subcategories.filter((s) => product?.subcategory_ids.includes(s.id)),
   );
 
   if (loading) {
