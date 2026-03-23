@@ -42,6 +42,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
         {[
           { id: "categories" as const, label: "Menus" },
           { id: "farms" as const, label: "Catégories" },
+          { id: "products" as const, label: "Produits" },
         ].map(({ id, label }) => (
           <button
             key={id}
