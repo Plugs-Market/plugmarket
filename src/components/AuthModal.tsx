@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTelegram } from "@/hooks/useTelegram";
 import { Button } from "@/components/ui/button";
@@ -31,10 +31,11 @@ const AuthModal = ({ open, onOpenChange, defaultView = "login" }: AuthModalProps
 
   const [view, setView] = useState<AuthView>(resolveInitialView(defaultView));
 
-  // Sync view when defaultView changes and modal opens
-  useState(() => {
-    // This runs on mount only; we use useEffect below for updates
-  });
+  useEffect(() => {
+    if (open) {
+      setView(resolveInitialView(defaultView));
+    }
+  }, [open, defaultView]);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
