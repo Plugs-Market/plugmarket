@@ -20,7 +20,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     <div className="min-h-screen bg-background pb-24">
       {activeTab === "dashboard" && <AdminDashboard />}
       {activeTab === "users" && <AdminUsersList />}
-      <AdminBottomNav activeTab={activeTab} onTabChange={handleTabChange} onBack={onBack} />
+      <AdminBottomNav activeTab={activeTab} onTabChange={setActiveTab} onBack={onBack} />
     </div>
   );
 };
