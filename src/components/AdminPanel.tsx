@@ -18,7 +18,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {activeTab === "dashboard" && <AdminDashboard />}
+      {activeTab === "dashboard" && <AdminDashboard onNavigate={(tab) => setActiveTab(tab as AdminTab)} />}
       {activeTab === "users" && <AdminUsersList />}
       <AdminBottomNav activeTab={activeTab} onTabChange={setActiveTab} onBack={onBack} />
     </div>
