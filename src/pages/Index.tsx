@@ -6,25 +6,25 @@ import BottomNav from "@/components/BottomNav";
 import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
 import ProfileSection from "@/components/ProfileSection";
-import { products } from "@/data/products";
+import { useShopData } from "@/hooks/useShopData";
 
 type Tab = "menu" | "reviews" | "faq" | "contact";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("menu");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedFarm, setSelectedFarm] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
   const [showAdmin, setShowAdmin] = useState(false);
+
+  const { categories, products, loading } = useShopData();
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      if (selectedCategory && p.category !== selectedCategory) return false;
-      if (selectedFarm && p.farm !== selectedFarm) return false;
-      if (selectedSubcategory && p.subcategory !== selectedSubcategory) return false;
+      if (selectedCategoryId && p.category_id !== selectedCategoryId) return false;
+      if (selectedSubcategoryId && p.subcategory_id !== selectedSubcategoryId) return false;
       return true;
     });
-  }, [selectedCategory, selectedFarm, selectedSubcategory]);
+  }, [products, selectedCategoryId, selectedSubcategoryId]);
 
   if (showAdmin) {
     return (
@@ -42,12 +42,14 @@ const Index = () => {
       {activeTab === "menu" && (
         <>
           <CategoryFilter
-            selectedCategory={selectedCategory}
-            selectedFarm={selectedFarm}
-            selectedSubcategory={selectedSubcategory}
-            onCategoryChange={setSelectedCategory}
-            onFarmChange={setSelectedFarm}
-            onSubcategoryChange={setSelectedSubcategory}
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            selectedSubcategoryId={selectedSubcategoryId}
+            onCategoryChange={(id) => {
+              setSelectedCategoryId(id);
+              setSelectedSubcategoryId("");
+            }}
+            onSubcategoryChange={setSelectedSubcategoryId}
           />
 
           <div className="px-4">
@@ -60,13 +62,17 @@ const Index = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-              {filteredProducts.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))}
-            </div>
+            {loading ? (
+              <p className="text-muted-foreground text-center py-12">Chargement...</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {filteredProducts.map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))}
+              </div>
+            )}
 
-            {filteredProducts.length === 0 && (
+            {!loading && filteredProducts.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-lg">Aucun produit trouvé</p>
                 <p className="text-sm mt-1">Essayez de modifier vos filtres</p>
