@@ -1,4 +1,4 @@
-import { Home, HelpCircle, Mail } from "lucide-react";
+import { Home, HelpCircle, User } from "lucide-react";
 
 type Tab = "menu" | "faq" | "contact";
 
