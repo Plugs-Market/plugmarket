@@ -173,10 +173,11 @@ Deno.serve(async (req) => {
 
     // --- PUBLIC READ (no auth, for storefront) ---
     if (action === "get_public_shop_data") {
-      const [catsRes, subsRes, farmsRes] = await Promise.all([
+      const [catsRes, subsRes, farmsRes, prodsRes] = await Promise.all([
         supabase.from("categories").select("*").order("sort_order"),
         supabase.from("subcategories").select("*").order("sort_order"),
         supabase.from("farms").select("*").order("sort_order"),
+        supabase.from("products").select("*").order("sort_order"),
       ]);
 
       const categories = await Promise.all(
@@ -200,8 +201,16 @@ Deno.serve(async (req) => {
         }))
       );
 
+      const products = await Promise.all(
+        (prodsRes.data || []).map(async (p: any) => ({
+          ...p,
+          name: await decryptAES(p.name),
+          description: p.description ? await decryptAES(p.description) : null,
+        }))
+      );
+
       return new Response(
-        JSON.stringify({ success: true, categories, subcategories, farms }),
+        JSON.stringify({ success: true, categories, subcategories, farms, products }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
