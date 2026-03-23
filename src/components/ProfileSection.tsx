@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User, LogIn, UserPlus, Settings, ShoppingBag, Heart, Bell, LogOut } from "lucide-react";
+import { User, LogIn, UserPlus, Settings, ShoppingBag, Heart, Bell, LogOut, Shield } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
+import AdminPanel from "@/components/AdminPanel";
 
 const ProfileSection = () => {
   const { user: appUser, loading: authLoading, logout } = useAuth();
