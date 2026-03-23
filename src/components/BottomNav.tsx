@@ -1,4 +1,4 @@
-import { Home, HelpCircle, Mail } from "lucide-react";
+import { Home, HelpCircle, User } from "lucide-react";
 
 type Tab = "menu" | "faq" | "contact";
 
@@ -11,7 +11,7 @@ const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const tabs: { id: Tab; label: string; icon: typeof Home }[] = [
     { id: "menu", label: "Home", icon: Home },
     { id: "faq", label: "Infos", icon: HelpCircle },
-    { id: "contact", label: "Contact", icon: Mail },
+    { id: "contact", label: "Profil", icon: User },
   ];
 
   return (
