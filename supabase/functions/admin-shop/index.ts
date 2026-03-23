@@ -164,39 +164,31 @@ Deno.serve(async (req) => {
 
     // --- PUBLIC READ (no auth, for storefront) ---
     if (action === "get_public_shop_data") {
-      const [catsRes, subsRes, farmsRes, prodsRes] = await Promise.all([
+      const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes] = await Promise.all([
         supabase.from("categories").select("*").order("sort_order"),
         supabase.from("subcategories").select("*").order("sort_order"),
         supabase.from("farms").select("*").order("sort_order"),
         supabase.from("products").select("*").order("sort_order"),
+        supabase.from("product_categories").select("*"),
+        supabase.from("product_subcategories").select("*"),
       ]);
 
       const categories = await Promise.all(
-        (catsRes.data || []).map(async (c: any) => ({
-          ...c,
-          name: await decryptAES(c.name),
-        }))
+        (catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))
       );
-
       const subcategories = await Promise.all(
-        (subsRes.data || []).map(async (s: any) => ({
-          ...s,
-          name: await decryptAES(s.name),
-        }))
+        (subsRes.data || []).map(async (s: any) => ({ ...s, name: await decryptAES(s.name) }))
       );
-
       const farms = await Promise.all(
-        (farmsRes.data || []).map(async (f: any) => ({
-          ...f,
-          name: await decryptAES(f.name),
-        }))
+        (farmsRes.data || []).map(async (f: any) => ({ ...f, name: await decryptAES(f.name) }))
       );
-
       const products = await Promise.all(
         (prodsRes.data || []).map(async (p: any) => ({
           ...p,
           name: await decryptAES(p.name),
           description: p.description ? await decryptAES(p.description) : null,
+          category_ids: (pcRes.data || []).filter((pc: any) => pc.product_id === p.id).map((pc: any) => pc.category_id),
+          subcategory_ids: (psRes.data || []).filter((ps: any) => ps.product_id === p.id).map((ps: any) => ps.subcategory_id),
         }))
       );
 
