@@ -285,48 +285,78 @@ Deno.serve(async (req) => {
 
     // --- PRODUCTS ---
     if (action === "add_product") {
-      const { name, description, price, image_url, category_id, subcategory_id } = body;
+      const { name, description, price, image_url, category_ids, subcategory_ids } = body;
       if (!name?.trim()) return errResponse("Nom requis");
       const encName = await encryptAES(name.trim());
       const encDesc = description?.trim() ? await encryptAES(description.trim()) : null;
       const { data: maxOrder } = await supabase.from("products").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
-      const { error } = await supabase.from("products").insert({
+      const { data: newProduct, error } = await supabase.from("products").insert({
         name: encName,
         description: encDesc,
         price: price || 0,
         image_url: image_url || null,
-        category_id: category_id || null,
-        subcategory_id: subcategory_id || null,
         sort_order: (maxOrder?.sort_order ?? 0) + 1,
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Insert junction rows
+      const pid = newProduct.id;
+      if (category_ids?.length) {
+        await supabase.from("product_categories").insert(
+          category_ids.map((cid: string) => ({ product_id: pid, category_id: cid }))
+        );
+      }
+      if (subcategory_ids?.length) {
+        await supabase.from("product_subcategories").insert(
+          subcategory_ids.map((sid: string) => ({ product_id: pid, subcategory_id: sid }))
+        );
+      }
       return okResponse();
     }
 
     if (action === "update_product") {
-      const { id, name, description, price, image_url, category_id, subcategory_id } = body;
+      const { id, name, description, price, image_url, category_ids, subcategory_ids } = body;
       if (!id) return errResponse("ID manquant");
       const updates: Record<string, unknown> = {};
       if (name?.trim()) updates.name = await encryptAES(name.trim());
       if (description !== undefined) updates.description = description?.trim() ? await encryptAES(description.trim()) : null;
       if (price !== undefined) updates.price = price;
       if (image_url !== undefined) updates.image_url = image_url;
-      if (category_id !== undefined) updates.category_id = category_id || null;
-      if (subcategory_id !== undefined) updates.subcategory_id = subcategory_id || null;
-      const { error } = await supabase.from("products").update(updates).eq("id", id);
-      if (error) throw error;
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from("products").update(updates).eq("id", id);
+        if (error) throw error;
+      }
+
+      // Replace junction rows
+      if (category_ids !== undefined) {
+        await supabase.from("product_categories").delete().eq("product_id", id);
+        if (category_ids?.length) {
+          await supabase.from("product_categories").insert(
+            category_ids.map((cid: string) => ({ product_id: id, category_id: cid }))
+          );
+        }
+      }
+      if (subcategory_ids !== undefined) {
+        await supabase.from("product_categories").delete().eq("product_id", id);
+        if (subcategory_ids?.length) {
+          await supabase.from("product_subcategories").delete().eq("product_id", id);
+          await supabase.from("product_subcategories").insert(
+            subcategory_ids.map((sid: string) => ({ product_id: id, subcategory_id: sid }))
+          );
+        }
+      }
       return okResponse();
     }
 
     if (action === "delete_product") {
       const { id } = body;
       if (!id) return errResponse("ID manquant");
-      // Delete image from storage if exists
       const { data: product } = await supabase.from("products").select("image_url").eq("id", id).maybeSingle();
       if (product?.image_url) {
         const path = product.image_url.split("/product-images/")[1];
         if (path) await supabase.storage.from("product-images").remove([path]);
       }
+      // Junction rows deleted via CASCADE
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
       return okResponse();
