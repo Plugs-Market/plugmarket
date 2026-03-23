@@ -15,6 +15,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedFarm, setSelectedFarm] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -24,6 +25,15 @@ const Index = () => {
       return true;
     });
   }, [selectedCategory, selectedFarm, selectedSubcategory]);
+
+  if (showAdmin) {
+    return (
+      <ProfileSection
+        showAdminPanel={true}
+        onAdminBack={() => setShowAdmin(false)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -74,7 +84,9 @@ const Index = () => {
       )}
 
       {activeTab === "faq" && <FAQSection />}
-      {activeTab === "contact" && <ProfileSection />}
+      {activeTab === "contact" && (
+        <ProfileSection onOpenAdmin={() => setShowAdmin(true)} />
+      )}
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
