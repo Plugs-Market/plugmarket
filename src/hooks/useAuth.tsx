@@ -118,7 +118,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const token = localStorage.getItem("plugs_market_token");
+    if (token) {
+      try {
+        await supabase.functions.invoke("auth-logout", {
+          body: { session_token: token },
+        });
+      } catch {}
+    }
     setUser(null);
     localStorage.removeItem("plugs_market_user");
     localStorage.removeItem("plugs_market_token");
