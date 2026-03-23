@@ -10,6 +10,7 @@ interface BottomNavProps {
 const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const tabs: { id: Tab; label: string; icon: typeof Home }[] = [
     { id: "menu", label: "Home", icon: Home },
+    { id: "reviews", label: "Avis", icon: Star },
     { id: "faq", label: "Infos", icon: HelpCircle },
     { id: "contact", label: "Profil", icon: User },
   ];
