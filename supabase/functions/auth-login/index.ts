@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
 
     const { data: user, error } = await supabase
       .from("app_users")
-      .select("id, username")
+      .select("id, username, grade")
       .eq("username", username.toLowerCase().trim())
       .eq("password_hash", passwordHash)
       .maybeSingle();
