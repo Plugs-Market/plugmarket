@@ -72,18 +72,18 @@ const ProductPage = () => {
           </span>
         </div>
 
-        {(category || subcategory) && (
+        {(productCategories.length > 0 || productSubcategories.length > 0) && (
           <div className="flex flex-wrap gap-2">
-            {category && (
-              <span className="px-3 py-1 rounded-full bg-secondary text-xs font-medium text-foreground border border-border">
-                {category.name}
+            {productCategories.map((c) => (
+              <span key={c.id} className="px-3 py-1 rounded-full bg-secondary text-xs font-medium text-foreground border border-border">
+                {c.name}
               </span>
-            )}
-            {subcategory && (
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary border border-primary/20">
-                {subcategory.name}
+            ))}
+            {productSubcategories.map((s) => (
+              <span key={s.id} className="px-3 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary border border-primary/20">
+                {s.name}
               </span>
-            )}
+            ))}
           </div>
         )}
 
