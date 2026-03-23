@@ -75,6 +75,9 @@ const ProfileSection = () => {
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-foreground font-semibold text-lg truncate">{displayName}</p>
+          <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wide">
+            {appUser.grade || "membre"}
+          </span>
         </div>
       </div>
       <div className="space-y-2">
