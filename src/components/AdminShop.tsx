@@ -12,7 +12,7 @@ import AdminProductsSection from "@/components/AdminProductsSection";
 const AdminShop = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
   const { categories, farms, products, loading, refetch } = useShopData();
-  const [activeSection, setActiveSection] = useState<"categories" | "farms" | "products">("categories");
+  const [activeSection, setActiveSection] = useState<"categories" | "products">("categories");
 
   if (user?.grade !== "Admin") return null;
 
@@ -41,7 +41,6 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
       <div className="flex gap-2 mb-6">
         {[
           { id: "categories" as const, label: "Menus" },
-          { id: "farms" as const, label: "Catégories" },
           { id: "products" as const, label: "Produits" },
         ].map(({ id, label }) => (
           <button
@@ -68,13 +67,6 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
           onDelete={async (id) => { if (await callAdmin("delete_category", { id })) { toast.success("Menu supprimé"); refetch(); } }}
           onAddSub={async (category_id, name) => { if (await callAdmin("add_subcategory", { category_id, name })) { toast.success("Sous-catégorie ajoutée"); refetch(); } }}
           onDeleteSub={async (id) => { if (await callAdmin("delete_subcategory", { id })) { toast.success("Sous-catégorie supprimée"); refetch(); } }}
-        />
-      ) : activeSection === "farms" ? (
-        <FarmsSection
-          farms={farms}
-          onAdd={async (name) => { if (await callAdmin("add_farm", { name })) { toast.success("Catégorie ajoutée"); refetch(); } }}
-          onRename={async (id, name) => { if (await callAdmin("rename_farm", { id, name })) { toast.success("Catégorie renommée"); refetch(); } }}
-          onDelete={async (id) => { if (await callAdmin("delete_farm", { id })) { toast.success("Catégorie supprimée"); refetch(); } }}
         />
       ) : (
         <AdminProductsSection products={products} categories={categories} onRefetch={refetch} />
