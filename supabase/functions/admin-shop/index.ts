@@ -337,9 +337,8 @@ Deno.serve(async (req) => {
         }
       }
       if (subcategory_ids !== undefined) {
-        await supabase.from("product_categories").delete().eq("product_id", id);
+        await supabase.from("product_subcategories").delete().eq("product_id", id);
         if (subcategory_ids?.length) {
-          await supabase.from("product_subcategories").delete().eq("product_id", id);
           await supabase.from("product_subcategories").insert(
             subcategory_ids.map((sid: string) => ({ product_id: id, subcategory_id: sid }))
           );
