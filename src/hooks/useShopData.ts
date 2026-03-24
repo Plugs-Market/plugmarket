@@ -51,21 +51,7 @@ export function useShopData() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      let data: any = null;
-      let lastError: Error | null = null;
-
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          data = await fetchShopPayload();
-          lastError = null;
-          break;
-        } catch (err) {
-          lastError = err as Error;
-          if (attempt < 2) await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
-        }
-      }
-
-      if (!data) throw lastError || new Error("Shop data fetch failed");
+      const data = await fetchShopPayload();
 
       const cats: DBCategory[] = (data.categories || []).map((c: any) => ({
         id: c.id,
