@@ -23,6 +23,47 @@ function generateSessionToken(): string {
     .join("");
 }
 
+function normalizeUsername(value: string): string {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildPasswordCandidates(value: string): string[] {
+  const normalizedUnicode = value.normalize("NFKC");
+  const normalizedSpaces = normalizedUnicode.replace(/[\u00A0\u2007\u202F]/g, " ");
+  const trimmed = normalizedSpaces.trim();
+
+  return Array.from(new Set([value, normalizedUnicode, normalizedSpaces, trimmed].filter(Boolean)));
+}
+
+function verifyBcryptPassword(candidate: string, storedHash: string): boolean {
+  try {
+    if (bcrypt.compareSync(candidate, storedHash)) {
+      return true;
+    }
+
+    // Prefix compatibility for hashes created in different runtimes.
+    if (storedHash.startsWith("$2y$")) {
+      return bcrypt.compareSync(candidate, `$2b$${storedHash.slice(4)}`);
+    }
+
+    if (storedHash.startsWith("$2a$")) {
+      return bcrypt.compareSync(candidate, `$2b$${storedHash.slice(4)}`);
+    }
+
+    if (storedHash.startsWith("$2b$")) {
+      return bcrypt.compareSync(candidate, `$2a$${storedHash.slice(4)}`);
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MINUTES = 15;
 
@@ -67,7 +108,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { username, password } = await req.json();
+    const payload = await req.json();
+    const username = typeof payload?.username === "string" ? payload.username : "";
+    const password = typeof payload?.password === "string" ? payload.password : "";
 
     if (!username || !password) {
       return new Response(
@@ -76,12 +119,22 @@ Deno.serve(async (req) => {
       );
     }
 
+    const normalizedUsername = normalizeUsername(username);
+    if (!normalizedUsername) {
+      return new Response(
+        JSON.stringify({ error: "Pseudo et mot de passe requis" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const passwordCandidates = buildPasswordCandidates(password);
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const rateLimitKey = `login:${username.toLowerCase().trim()}`;
+    const rateLimitKey = `login:${normalizedUsername}`;
     const isLimited = await checkRateLimit(supabase, rateLimitKey);
     if (isLimited) {
       return new Response(
@@ -93,41 +146,54 @@ Deno.serve(async (req) => {
     const { data: user, error } = await supabase
       .from("app_users")
       .select("id, username, grade, password_hash")
-      .eq("username", username.toLowerCase().trim())
+      .eq("username", normalizedUsername)
       .maybeSingle();
 
     if (error || !user) {
       return new Response(
-        JSON.stringify({ error: "Pseudo ou mot de passe incorrect" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: "Pseudo ou mot de passe incorrect" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Support both bcrypt and legacy SHA-256 hashes
+    // Support bcrypt variants and legacy SHA-256 hashes.
     let passwordValid = false;
+    let matchedPassword: string | null = null;
+
     if (user.password_hash.startsWith("$2")) {
-      // bcrypt hash
-      passwordValid = bcrypt.compareSync(password, user.password_hash);
+      for (const candidate of passwordCandidates) {
+        if (verifyBcryptPassword(candidate, user.password_hash)) {
+          passwordValid = true;
+          matchedPassword = candidate;
+          break;
+        }
+      }
     } else {
       // Legacy SHA-256 — verify then migrate to bcrypt
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const sha256Hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+      for (const candidate of passwordCandidates) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(candidate);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const sha256Hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 
-      if (sha256Hash === user.password_hash) {
-        passwordValid = true;
-        // Migrate to bcrypt
-        const bcryptHash = bcrypt.hashSync(password, 10);
+        if (sha256Hash === user.password_hash) {
+          passwordValid = true;
+          matchedPassword = candidate;
+          break;
+        }
+      }
+
+      if (passwordValid && matchedPassword) {
+        const bcryptHash = bcrypt.hashSync(matchedPassword, 10);
         await supabase.from("app_users").update({ password_hash: bcryptHash }).eq("id", user.id);
       }
     }
 
     if (!passwordValid) {
       return new Response(
-        JSON.stringify({ error: "Pseudo ou mot de passe incorrect" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: "Pseudo ou mot de passe incorrect" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
