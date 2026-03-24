@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, ArrowLeft, Store, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeft, Store, Bot, LucideIcon } from "lucide-react";
 
-export type AdminTab = "dashboard" | "users" | "shop";
+export type AdminTab = "dashboard" | "users" | "shop" | "telegram";
 
 interface AdminBottomNavProps {
   activeTab: AdminTab;

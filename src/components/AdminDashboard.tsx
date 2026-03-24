@@ -1,4 +1,4 @@
-import { Shield, Users, Store } from "lucide-react";
+import { Shield, Users, Store, Bot } from "lucide-react";
 
 interface AdminDashboardProps {
   onNavigate?: (tab: string) => void;
