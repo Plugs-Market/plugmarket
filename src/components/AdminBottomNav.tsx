@@ -12,6 +12,7 @@ const TAB_META: Record<AdminTab, { label: string; icon: LucideIcon }> = {
   dashboard: { label: "Dashboard", icon: LayoutDashboard },
   users: { label: "Users", icon: Users },
   shop: { label: "Boutique", icon: Store },
+  telegram: { label: "Telegram", icon: Bot },
 };
 
 const AdminBottomNav = ({ activeTab, onTabChange, onBack }: AdminBottomNavProps) => {
