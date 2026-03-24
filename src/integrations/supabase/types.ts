@@ -291,6 +291,33 @@ export type Database = {
           },
         ]
       }
+      telegram_config: {
+        Row: {
+          bot_name: string | null
+          bot_token_encrypted: string | null
+          bot_username: string | null
+          id: number
+          is_connected: boolean
+          updated_at: string
+        }
+        Insert: {
+          bot_name?: string | null
+          bot_token_encrypted?: string | null
+          bot_username?: string | null
+          id: number
+          is_connected?: boolean
+          updated_at?: string
+        }
+        Update: {
+          bot_name?: string | null
+          bot_token_encrypted?: string | null
+          bot_username?: string | null
+          id?: number
+          is_connected?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

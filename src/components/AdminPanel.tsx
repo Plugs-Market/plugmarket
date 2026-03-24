@@ -4,6 +4,7 @@ import AdminBottomNav, { AdminTab } from "@/components/AdminBottomNav";
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminUsersList from "@/components/AdminUsersList";
 import AdminShop from "@/components/AdminShop";
+import AdminTelegram from "@/components/AdminTelegram";
 
 const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       {activeTab === "dashboard" && <AdminDashboard onNavigate={(tab) => setActiveTab(tab as AdminTab)} />}
       {activeTab === "users" && <AdminUsersList />}
       {activeTab === "shop" && <AdminShop onBack={() => setActiveTab("dashboard")} />}
+      {activeTab === "telegram" && <AdminTelegram onBack={() => setActiveTab("dashboard")} />}
       <AdminBottomNav activeTab={activeTab} onTabChange={setActiveTab} onBack={onBack} />
     </div>
   );
