@@ -28,7 +28,9 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes;
 }
 
+let _cachedKey: CryptoKey | null = null;
 async function getAESKey(): Promise<CryptoKey> {
+  if (_cachedKey) return _cachedKey;
   const keyHex = Deno.env.get("AES_ENCRYPTION_KEY");
   if (!keyHex) throw new Error("AES_ENCRYPTION_KEY not set");
   let keyBytes: Uint8Array;
@@ -39,7 +41,8 @@ async function getAESKey(): Promise<CryptoKey> {
     const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
     keyBytes = new Uint8Array(hashBuffer);
   }
-  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"]);
+  _cachedKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"]);
+  return _cachedKey;
 }
 
 async function encryptAES(plaintext: string): Promise<string> {
@@ -128,33 +131,43 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Pre-warm the AES key
+      await getAESKey();
+
       const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes] = await Promise.all([
-        supabase.from("categories").select("*").order("sort_order"),
-        supabase.from("subcategories").select("*").order("sort_order"),
-        supabase.from("farms").select("*").order("sort_order"),
-        supabase.from("products").select("*").order("sort_order"),
-        supabase.from("product_categories").select("*"),
-        supabase.from("product_subcategories").select("*"),
+        supabase.from("categories").select("id,name,sort_order").order("sort_order"),
+        supabase.from("subcategories").select("id,category_id,name,sort_order").order("sort_order"),
+        supabase.from("farms").select("id,name,sort_order").order("sort_order"),
+        supabase.from("products").select("id,name,description,price,image_url,sort_order").order("sort_order"),
+        supabase.from("product_categories").select("product_id,category_id"),
+        supabase.from("product_subcategories").select("product_id,subcategory_id"),
       ]);
 
-      const categories = await Promise.all(
-        (catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))
-      );
-      const subcategories = await Promise.all(
-        (subsRes.data || []).map(async (s: any) => ({ ...s, name: await decryptAES(s.name) }))
-      );
-      const farms = await Promise.all(
-        (farmsRes.data || []).map(async (f: any) => ({ ...f, name: await decryptAES(f.name) }))
-      );
-      const products = await Promise.all(
-        (prodsRes.data || []).map(async (p: any) => ({
+      const pcMap = new Map<string, string[]>();
+      for (const pc of pcRes.data || []) {
+        const arr = pcMap.get(pc.product_id) || [];
+        arr.push(pc.category_id);
+        pcMap.set(pc.product_id, arr);
+      }
+      const psMap = new Map<string, string[]>();
+      for (const ps of psRes.data || []) {
+        const arr = psMap.get(ps.product_id) || [];
+        arr.push(ps.subcategory_id);
+        psMap.set(ps.product_id, arr);
+      }
+
+      const [categories, subcategories, farms, products] = await Promise.all([
+        Promise.all((catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))),
+        Promise.all((subsRes.data || []).map(async (s: any) => ({ ...s, name: await decryptAES(s.name) }))),
+        Promise.all((farmsRes.data || []).map(async (f: any) => ({ ...f, name: await decryptAES(f.name) }))),
+        Promise.all((prodsRes.data || []).map(async (p: any) => ({
           ...p,
           name: await decryptAES(p.name),
           description: p.description ? await decryptAES(p.description) : null,
-          category_ids: (pcRes.data || []).filter((pc: any) => pc.product_id === p.id).map((pc: any) => pc.category_id),
-          subcategory_ids: (psRes.data || []).filter((ps: any) => ps.product_id === p.id).map((ps: any) => ps.subcategory_id),
-        }))
-      );
+          category_ids: pcMap.get(p.id) || [],
+          subcategory_ids: psMap.get(p.id) || [],
+        }))),
+      ]);
 
       return new Response(
         JSON.stringify({ success: true, categories, subcategories, farms, products }),
@@ -164,33 +177,45 @@ Deno.serve(async (req) => {
 
     // --- PUBLIC READ (no auth, for storefront) ---
     if (action === "get_public_shop_data") {
+      // Pre-warm the AES key before parallel decryption
+      await getAESKey();
+
       const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes] = await Promise.all([
-        supabase.from("categories").select("*").order("sort_order"),
-        supabase.from("subcategories").select("*").order("sort_order"),
-        supabase.from("farms").select("*").order("sort_order"),
-        supabase.from("products").select("*").order("sort_order"),
-        supabase.from("product_categories").select("*"),
-        supabase.from("product_subcategories").select("*"),
+        supabase.from("categories").select("id,name,sort_order").order("sort_order"),
+        supabase.from("subcategories").select("id,category_id,name,sort_order").order("sort_order"),
+        supabase.from("farms").select("id,name,sort_order").order("sort_order"),
+        supabase.from("products").select("id,name,description,price,image_url,sort_order").order("sort_order"),
+        supabase.from("product_categories").select("product_id,category_id"),
+        supabase.from("product_subcategories").select("product_id,subcategory_id"),
       ]);
 
-      const categories = await Promise.all(
-        (catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))
-      );
-      const subcategories = await Promise.all(
-        (subsRes.data || []).map(async (s: any) => ({ ...s, name: await decryptAES(s.name) }))
-      );
-      const farms = await Promise.all(
-        (farmsRes.data || []).map(async (f: any) => ({ ...f, name: await decryptAES(f.name) }))
-      );
-      const products = await Promise.all(
-        (prodsRes.data || []).map(async (p: any) => ({
+      // Build lookup maps for O(1) access
+      const pcMap = new Map<string, string[]>();
+      for (const pc of pcRes.data || []) {
+        const arr = pcMap.get(pc.product_id) || [];
+        arr.push(pc.category_id);
+        pcMap.set(pc.product_id, arr);
+      }
+      const psMap = new Map<string, string[]>();
+      for (const ps of psRes.data || []) {
+        const arr = psMap.get(ps.product_id) || [];
+        arr.push(ps.subcategory_id);
+        psMap.set(ps.product_id, arr);
+      }
+
+      // Decrypt all in parallel
+      const [categories, subcategories, farms, products] = await Promise.all([
+        Promise.all((catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))),
+        Promise.all((subsRes.data || []).map(async (s: any) => ({ ...s, name: await decryptAES(s.name) }))),
+        Promise.all((farmsRes.data || []).map(async (f: any) => ({ ...f, name: await decryptAES(f.name) }))),
+        Promise.all((prodsRes.data || []).map(async (p: any) => ({
           ...p,
           name: await decryptAES(p.name),
           description: p.description ? await decryptAES(p.description) : null,
-          category_ids: (pcRes.data || []).filter((pc: any) => pc.product_id === p.id).map((pc: any) => pc.category_id),
-          subcategory_ids: (psRes.data || []).filter((ps: any) => ps.product_id === p.id).map((ps: any) => ps.subcategory_id),
-        }))
-      );
+          category_ids: pcMap.get(p.id) || [],
+          subcategory_ids: psMap.get(p.id) || [],
+        }))),
+      ]);
 
       return new Response(
         JSON.stringify({ success: true, categories, subcategories, farms, products }),
