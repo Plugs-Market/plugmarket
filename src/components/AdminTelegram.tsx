@@ -25,7 +25,7 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
   const [botInfo, setBotInfo] = useState<{ username: string; first_name: string } | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const sessionToken = localStorage.getItem("session_token");
+  const sessionToken = localStorage.getItem("plugs_market_token");
 
   useEffect(() => {
     loadConfig();
