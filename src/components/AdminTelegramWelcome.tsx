@@ -463,7 +463,7 @@ const AdminTelegramWelcome = () => {
                   className="text-sm min-h-[80px] font-mono"
                 />
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ La balise <code className="text-primary font-mono">{"{captcha}"}</code> n'affiche PAS le code dans le message — le code est uniquement dans l'image. Utilisez-la pour indiquer à l'utilisateur ce qu'il doit faire.
+                  ⚠️ La balise <code className="text-primary font-mono">{"{captcha}"}</code> affiche le code en format copiable (<code>&lt;code&gt;</code>) dans le message Telegram.
                 </p>
               </div>
 
@@ -478,7 +478,7 @@ const AdminTelegramWelcome = () => {
                   </div>
                   <p className="text-sm whitespace-pre-wrap">
                     {(config.captcha_message || "Entrez le code :")
-                      .replace(/\{captcha\}/g, "")
+                      .replace(/\{captcha\}/g, "A7K9P")
                       .replace(/\{first_name\}/g, "Jean")
                       .replace(/\{username\}/g, "@jean_dupont")}
                   </p>
