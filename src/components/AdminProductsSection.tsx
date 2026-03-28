@@ -221,6 +221,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: p.description || null,
       price: p.price,
       image_url: p.image_url || null,
+      video_url: p.video_url || null,
       category_ids: [...p.category_ids],
       subcategory_ids: [...p.subcategory_ids],
       variants: (p.variants || []).map((v) => ({ label: v.label, price: v.price })),
@@ -383,10 +384,39 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
                 />
               </label>
             </div>
+
+            {/* Video */}
+            <div className="space-y-2">
+              {form.video_url && (
+                <div className="relative">
+                  <video src={form.video_url} className="w-full h-32 object-cover rounded-lg border border-border" controls />
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, video_url: "" }))}
+                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+              <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary transition-colors">
+                <Video size={16} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {uploadingVideo ? "Upload vidéo en cours..." : "Ajouter une vidéo"}
+                </span>
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={handleVideoUpload}
+                  disabled={uploadingVideo}
+                />
+              </label>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowModal(false)}>Annuler</Button>
-            <Button disabled={!form.name.trim() || uploading} onClick={handleSave}>
+            <Button disabled={!form.name.trim() || uploading || uploadingVideo} onClick={handleSave}>
               {editProduct ? "Enregistrer" : "Créer"}
             </Button>
           </DialogFooter>
