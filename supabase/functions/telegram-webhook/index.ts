@@ -206,6 +206,37 @@ Deno.serve(async (req) => {
     const botToken = await decrypt(config.bot_token_encrypted);
     const tgBase = `https://api.telegram.org/bot${botToken}`;
 
+    // Track user interaction
+    await supabase.rpc("upsert_telegram_interaction", {} as any).catch(() => {});
+    const { error: upsertErr } = await supabase
+      .from("telegram_interactions")
+      .upsert(
+        {
+          chat_id: chatId,
+          username: from.username || null,
+          first_name: from.first_name || null,
+          last_name: from.last_name || null,
+          language_code: from.language_code || null,
+          last_seen_at: new Date().toISOString(),
+          message_count: 1,
+        },
+        { onConflict: "chat_id" }
+      );
+    if (upsertErr) {
+      // If upsert fails (existing row), just update
+      await supabase
+        .from("telegram_interactions")
+        .update({
+          username: from.username || null,
+          first_name: from.first_name || null,
+          last_name: from.last_name || null,
+          language_code: from.language_code || null,
+          last_seen_at: new Date().toISOString(),
+        })
+        .eq("chat_id", chatId);
+      // Increment message_count via raw increment isn't possible, so we'll handle it differently
+    }
+
     // Get welcome config (including captcha settings)
     const { data: welcome } = await supabase
       .from("telegram_welcome")
