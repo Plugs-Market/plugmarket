@@ -73,6 +73,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       image_url: p.image_url || "",
       category_ids: [...p.category_ids],
       subcategory_ids: [...p.subcategory_ids],
+      variants: (p.variants || []).map((v) => ({ label: v.label, price: String(v.price) })),
     });
     setShowModal(true);
   };
