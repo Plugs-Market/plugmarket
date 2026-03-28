@@ -1,4 +1,4 @@
-import { Shield, Users, Store, Bot } from "lucide-react";
+import { Shield, Users, Store, Bot, HelpCircle } from "lucide-react";
 
 interface AdminDashboardProps {
   onNavigate?: (tab: string) => void;
@@ -44,6 +44,17 @@ const AdminDashboard = ({ onNavigate }: AdminDashboardProps) => {
           </div>
           <span className="text-sm font-semibold text-foreground">Telegram</span>
           <span className="text-xs text-muted-foreground">Configurer le bot Telegram</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("faq")}
+          className="p-5 rounded-xl bg-card card-neon-border flex flex-col gap-3 text-left hover:neon-glow transition-shadow"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+            <HelpCircle size={20} className="text-primary" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">Infos & FAQ</span>
+          <span className="text-xs text-muted-foreground">Gérer les questions fréquentes</span>
         </button>
       </div>
     </div>
