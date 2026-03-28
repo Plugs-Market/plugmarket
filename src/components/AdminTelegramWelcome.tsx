@@ -38,7 +38,7 @@ const CAPTCHA_TAGS = [
   { tag: "{username}", label: "Username", desc: "@username Telegram" },
 ];
 
-const AdminTelegramWelcome = ({ onShowTelegramUsers }: { onShowTelegramUsers?: () => void }) => {
+const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onShowTelegramUsers?: () => void; isReadOnly?: boolean }) => {
   const [config, setConfig] = useState<WelcomeConfig>({
     image_url: "",
     message_text: "Bienvenue ! 👋",
@@ -394,10 +394,12 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers }: { onShowTelegramUsers?: (
           </div>
 
           {/* Save */}
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-            Sauvegarder
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+              Sauvegarder
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -488,10 +490,12 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers }: { onShowTelegramUsers?: (
           )}
 
           {/* Save */}
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-            Sauvegarder
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+              Sauvegarder
+            </Button>
+          )}
         </CardContent>
       </Card>
 

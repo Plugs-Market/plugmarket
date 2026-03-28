@@ -27,6 +27,7 @@ interface TelegramUser {
 
 interface AdminTelegramUsersProps {
   onBack: () => void;
+  isReadOnly?: boolean;
 }
 
 const BAN_DURATIONS = [
@@ -39,7 +40,7 @@ const BAN_DURATIONS = [
   { value: "permanent", label: "Permanent" },
 ];
 
-const AdminTelegramUsers = ({ onBack }: AdminTelegramUsersProps) => {
+const AdminTelegramUsers = ({ onBack, isReadOnly = false }: AdminTelegramUsersProps) => {
   const [users, setUsers] = useState<TelegramUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -302,38 +303,40 @@ const AdminTelegramUsers = ({ onBack }: AdminTelegramUsersProps) => {
                 </div>
 
                 {/* Ban/Unban actions */}
-                <div className="mt-3 pt-3 border-t border-border">
-                  {u.is_banned ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full text-xs gap-1.5"
-                      onClick={() => handleUnban(u)}
-                      disabled={actionLoading === u.chat_id}
-                    >
-                      {actionLoading === u.chat_id ? (
-                        <RefreshCw size={14} className="animate-spin" />
-                      ) : (
-                        <ShieldCheck size={14} />
-                      )}
-                      Débannir
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full text-xs gap-1.5 text-destructive hover:bg-destructive/10 border-destructive/30"
-                      onClick={() => {
-                        setBanningUser(u);
-                        setBanReason("");
-                        setBanDuration("24");
-                      }}
-                    >
-                      <Ban size={14} />
-                      Bannir
-                    </Button>
-                  )}
-                </div>
+                {!isReadOnly && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    {u.is_banned ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs gap-1.5"
+                        onClick={() => handleUnban(u)}
+                        disabled={actionLoading === u.chat_id}
+                      >
+                        {actionLoading === u.chat_id ? (
+                          <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                          <ShieldCheck size={14} />
+                        )}
+                        Débannir
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs gap-1.5 text-destructive hover:bg-destructive/10 border-destructive/30"
+                        onClick={() => {
+                          setBanningUser(u);
+                          setBanReason("");
+                          setBanDuration("24");
+                        }}
+                      >
+                        <Ban size={14} />
+                        Bannir
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

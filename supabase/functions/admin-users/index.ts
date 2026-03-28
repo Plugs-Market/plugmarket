@@ -65,6 +65,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    const READ_ACTIONS = ["get_stats", "list_users"];
+    if (admin.grade === "Demo Admin" && !READ_ACTIONS.includes(action)) {
+      return new Response(
+        JSON.stringify({ error: "Accès en lecture seule" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "get_stats") {
       const { count: totalUsers } = await supabase.from("app_users").select("*", { count: "exact", head: true });
       const { count: admins } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Admin");

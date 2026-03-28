@@ -18,12 +18,14 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     );
   }
 
+  const isReadOnly = user?.grade === "Demo Admin";
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {activeTab === "dashboard" && <AdminDashboard onNavigate={(tab) => setActiveTab(tab as AdminTab)} />}
-      {activeTab === "users" && <AdminUsersList />}
-      {activeTab === "shop" && <AdminShop onBack={() => setActiveTab("dashboard")} />}
-      {activeTab === "telegram" && <AdminTelegram onBack={() => setActiveTab("dashboard")} />}
+      {activeTab === "users" && <AdminUsersList isReadOnly={isReadOnly} />}
+      {activeTab === "shop" && <AdminShop onBack={() => setActiveTab("dashboard")} isReadOnly={isReadOnly} />}
+      {activeTab === "telegram" && <AdminTelegram onBack={() => setActiveTab("dashboard")} isReadOnly={isReadOnly} />}
       <AdminBottomNav activeTab={activeTab} onTabChange={setActiveTab} onBack={onBack} />
     </div>
   );

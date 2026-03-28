@@ -9,12 +9,12 @@ import { Store, ArrowLeft, Plus, Trash2, Edit2, FolderTree, ChevronDown, Chevron
 import { toast } from "sonner";
 import AdminProductsSection from "@/components/AdminProductsSection";
 
-const AdminShop = ({ onBack }: { onBack: () => void }) => {
+const AdminShop = ({ onBack, isReadOnly = false }: { onBack: () => void; isReadOnly?: boolean }) => {
   const { user } = useAuth();
   const { categories, farms, products, loading, refetch } = useShopData();
   const [activeSection, setActiveSection] = useState<"categories" | "products">("categories");
 
-  if (user?.grade !== "Admin") return null;
+  if (user?.grade !== "Admin" && user?.grade !== "Demo Admin") return null;
 
   const callAdmin = async (action: string, extra: Record<string, unknown> = {}) => {
     const token = localStorage.getItem("plugs_market_token");
@@ -62,6 +62,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
       ) : activeSection === "categories" ? (
         <CategoriesSection
           categories={categories}
+          isReadOnly={isReadOnly}
           onAdd={async (name) => { if (await callAdmin("add_category", { name })) { toast.success("Menu ajouté"); refetch(); } }}
           onRename={async (id, name) => { if (await callAdmin("rename_category", { id, name })) { toast.success("Menu renommé"); refetch(); } }}
           onDelete={async (id) => { if (await callAdmin("delete_category", { id })) { toast.success("Menu supprimé"); refetch(); } }}
@@ -69,7 +70,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
           onDeleteSub={async (id) => { if (await callAdmin("delete_subcategory", { id })) { toast.success("Sous-catégorie supprimée"); refetch(); } }}
         />
       ) : (
-        <AdminProductsSection products={products} categories={categories} onRefetch={refetch} />
+        <AdminProductsSection products={products} categories={categories} onRefetch={refetch} isReadOnly={isReadOnly} />
       )}
     </div>
   );
@@ -78,6 +79,7 @@ const AdminShop = ({ onBack }: { onBack: () => void }) => {
 // --- Categories Section ---
 interface CatSectionProps {
   categories: { id: string; name: string; subcategories: { id: string; name: string }[] }[];
+  isReadOnly?: boolean;
   onAdd: (name: string) => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
@@ -85,7 +87,7 @@ interface CatSectionProps {
   onDeleteSub: (id: string) => void;
 }
 
-const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, onDeleteSub }: CatSectionProps) => {
+const CategoriesSection = ({ categories, isReadOnly = false, onAdd, onRename, onDelete, onAddSub, onDeleteSub }: CatSectionProps) => {
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddSubModal, setShowAddSubModal] = useState<string | null>(null);
@@ -96,12 +98,14 @@ const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, on
 
   return (
     <div className="space-y-4">
-      <Button
-        className="w-full gap-2"
-        onClick={() => { setNewName(""); setShowAddModal(true); }}
-      >
-        <Plus size={16} /> Ajouter un menu
-      </Button>
+      {!isReadOnly && (
+        <Button
+          className="w-full gap-2"
+          onClick={() => { setNewName(""); setShowAddModal(true); }}
+        >
+          <Plus size={16} /> Ajouter un menu
+        </Button>
+      )}
 
       {/* Add Menu Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
@@ -208,39 +212,47 @@ const CategoriesSection = ({ categories, onAdd, onRename, onDelete, onAddSub, on
                 )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingId(cat.id);
-                  setEditName(cat.name);
-                }}>
-                  <Edit2 size={12} />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm(`Supprimer le menu "${cat.name}" et ses sous-catégories ?`)) onDelete(cat.id);
-                }}>
-                  <Trash2 size={12} />
-                </Button>
+                {!isReadOnly && (
+                  <>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(cat.id);
+                      setEditName(cat.name);
+                    }}>
+                      <Edit2 size={12} />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Supprimer le menu "${cat.name}" et ses sous-catégories ?`)) onDelete(cat.id);
+                    }}>
+                      <Trash2 size={12} />
+                    </Button>
+                  </>
+                )}
                 {expandedCat === cat.id ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
               </div>
             </button>
             {expandedCat === cat.id && (
               <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 text-xs"
-                  onClick={() => { setNewSubName(""); setShowAddSubModal(cat.id); }}
-                >
-                  <Plus size={12} /> Ajouter sous-catégorie
-                </Button>
+                {!isReadOnly && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 text-xs"
+                    onClick={() => { setNewSubName(""); setShowAddSubModal(cat.id); }}
+                  >
+                    <Plus size={12} /> Ajouter sous-catégorie
+                  </Button>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {cat.subcategories.map((sub) => (
                     <div key={sub.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border text-xs font-medium text-foreground">
                       {sub.name}
-                      <button onClick={() => onDeleteSub(sub.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 size={10} />
-                      </button>
+                      {!isReadOnly && (
+                        <button onClick={() => onDeleteSub(sub.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 size={10} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
