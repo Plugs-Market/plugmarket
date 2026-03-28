@@ -180,6 +180,23 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     onRefetch();
   };
 
+  const handleDuplicate = async (p: DBProduct) => {
+    const payload = {
+      name: p.name + " (copie)",
+      description: p.description || null,
+      price: p.price,
+      image_url: p.image_url || null,
+      category_ids: [...p.category_ids],
+      subcategory_ids: [...p.subcategory_ids],
+      variants: (p.variants || []).map((v) => ({ label: v.label, price: v.price })),
+    };
+    const res = await callAdmin("add_product", payload);
+    if (res?.success) {
+      toast.success("Produit dupliqué");
+      onRefetch();
+    }
+  };
+
   // Get available subcategories from selected categories
   const availableSubcategories = useMemo(() => {
     return categories
