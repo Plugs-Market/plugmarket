@@ -266,14 +266,16 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
             {imagePreview ? (
               <div className="relative rounded-lg overflow-hidden border border-border">
                 <img src={imagePreview} alt="Aperçu" className="w-full max-h-40 object-cover" />
-                <button
-                  onClick={removeImage}
-                  className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 text-destructive hover:bg-background transition-colors"
-                >
-                  <X size={14} />
-                </button>
+                {!isReadOnly && (
+                  <button
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 text-destructive hover:bg-background transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
-            ) : (
+            ) : !isReadOnly ? (
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
@@ -282,8 +284,10 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                 <span className="text-xs font-medium">Cliquer pour uploader une image</span>
                 <span className="text-xs opacity-60">JPG, PNG, WEBP • Max 5 Mo</span>
               </button>
+            ) : (
+              <p className="text-xs text-muted-foreground">Aucune image configurée</p>
             )}
-            {imagePreview && (
+            {!isReadOnly && imagePreview && (
               <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full text-xs">
                 <Upload size={12} />
                 Changer l'image
