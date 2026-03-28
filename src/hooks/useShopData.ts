@@ -21,6 +21,13 @@ export interface DBFarm {
   sort_order: number;
 }
 
+export interface DBProductVariant {
+  id?: string;
+  label: string;
+  price: number;
+  sort_order: number;
+}
+
 export interface DBProduct {
   id: string;
   name: string;
@@ -30,6 +37,7 @@ export interface DBProduct {
   category_ids: string[];
   subcategory_ids: string[];
   sort_order: number;
+  variants: DBProductVariant[];
 }
 
 const CACHE_KEY = "shop_data_cache";
@@ -89,6 +97,12 @@ function transformData(data: any): { categories: DBCategory[]; farms: DBFarm[]; 
     category_ids: p.category_ids || [],
     subcategory_ids: p.subcategory_ids || [],
     sort_order: p.sort_order,
+    variants: (p.variants || []).map((v: any) => ({
+      id: v.id,
+      label: v.label,
+      price: Number(v.price),
+      sort_order: v.sort_order,
+    })),
   }));
 
   return { categories, farms, products };
