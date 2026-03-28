@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, RefreshCw, Save, Image, MessageSquare, ExternalLink, AppWindow, Upload, X, Code, ShieldCheck } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Save, Image, MessageSquare, ExternalLink, AppWindow, Upload, X, Code, ShieldCheck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,7 +38,7 @@ const CAPTCHA_TAGS = [
   { tag: "{username}", label: "Username", desc: "@username Telegram" },
 ];
 
-const AdminTelegramWelcome = () => {
+const AdminTelegramWelcome = ({ onShowTelegramUsers }: { onShowTelegramUsers?: () => void }) => {
   const [config, setConfig] = useState<WelcomeConfig>({
     image_url: "",
     message_text: "Bienvenue ! 👋",
@@ -494,6 +494,18 @@ const AdminTelegramWelcome = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Telegram Users Button */}
+      {onShowTelegramUsers && (
+        <Card className="bg-card card-neon-border">
+          <CardContent className="p-4">
+            <Button variant="outline" onClick={onShowTelegramUsers} className="w-full justify-start gap-2">
+              <Users size={16} />
+              Voir les utilisateurs Telegram
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

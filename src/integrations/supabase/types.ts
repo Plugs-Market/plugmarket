@@ -342,6 +342,42 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_interactions: {
+        Row: {
+          chat_id: number
+          first_name: string | null
+          first_seen_at: string
+          id: string
+          language_code: string | null
+          last_name: string | null
+          last_seen_at: string
+          message_count: number
+          username: string | null
+        }
+        Insert: {
+          chat_id: number
+          first_name?: string | null
+          first_seen_at?: string
+          id?: string
+          language_code?: string | null
+          last_name?: string | null
+          last_seen_at?: string
+          message_count?: number
+          username?: string | null
+        }
+        Update: {
+          chat_id?: number
+          first_name?: string | null
+          first_seen_at?: string
+          id?: string
+          language_code?: string | null
+          last_name?: string | null
+          last_seen_at?: string
+          message_count?: number
+          username?: string | null
+        }
+        Relationships: []
+      }
       telegram_welcome: {
         Row: {
           buttons: Json
@@ -377,7 +413,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      track_telegram_interaction: {
+        Args: {
+          p_chat_id: number
+          p_first_name?: string
+          p_language_code?: string
+          p_last_name?: string
+          p_username?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -184,6 +184,7 @@ Deno.serve(async (req) => {
 
     const chatId = message.chat.id;
     const text = message.text || "";
+    const from = message.from || {};
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -205,6 +206,15 @@ Deno.serve(async (req) => {
     const botToken = await decrypt(config.bot_token_encrypted);
     const tgBase = `https://api.telegram.org/bot${botToken}`;
 
+    // Track user interaction
+    await supabase.rpc("track_telegram_interaction", {
+      p_chat_id: chatId,
+      p_username: from.username || null,
+      p_first_name: from.first_name || null,
+      p_last_name: from.last_name || null,
+      p_language_code: from.language_code || null,
+    }).catch((e: any) => console.error("Track interaction error:", e));
+
     // Get welcome config (including captcha settings)
     const { data: welcome } = await supabase
       .from("telegram_welcome")
@@ -216,7 +226,6 @@ Deno.serve(async (req) => {
 
     // Handle /start command
     if (text.startsWith("/start")) {
-      const from = message.from || {};
 
       if (captchaEnabled) {
         // Delete any existing captcha for this chat
@@ -314,7 +323,6 @@ Deno.serve(async (req) => {
           await supabase.from("telegram_captcha").delete().eq("id", pending.id);
 
           // Send success then welcome
-          const from = message.from || {};
           await sendWelcomeMessage(tgBase, chatId, from, welcome);
         } else {
           await fetch(`${tgBase}/sendMessage`, {

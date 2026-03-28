@@ -7,16 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AdminTelegramWelcome from "@/components/AdminTelegramWelcome";
+import AdminTelegramUsers from "@/components/AdminTelegramUsers";
 
 interface AdminTelegramProps {
   onBack: () => void;
-}
-
-interface BotConfig {
-  bot_token: string;
-  bot_username: string;
-  is_connected: boolean;
-  webhook_url: string;
 }
 
 const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
@@ -25,6 +19,7 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
   const [testLoading, setTestLoading] = useState(false);
   const [botInfo, setBotInfo] = useState<{ username: string; first_name: string } | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [showTelegramUsers, setShowTelegramUsers] = useState(false);
 
   const sessionToken = localStorage.getItem("plugs_market_token");
 
@@ -117,6 +112,10 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
     }
   };
 
+  if (showTelegramUsers) {
+    return <AdminTelegramUsers onBack={() => setShowTelegramUsers(false)} />;
+  }
+
   return (
     <div className="px-4 py-6 pb-28 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -152,12 +151,7 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
           <CardTitle className="text-base">Configuration du Bot</CardTitle>
           <CardDescription>
             Obtenez votre token depuis{" "}
-            <a
-              href="https://t.me/BotFather"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
+            <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               @BotFather
             </a>{" "}
             sur Telegram
@@ -175,27 +169,13 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
               className="font-mono text-xs"
             />
           </div>
-
           <div className="flex gap-2">
-            <Button
-              onClick={handleSaveToken}
-              disabled={loading || !botToken.trim()}
-              className="flex-1"
-            >
-              {loading ? (
-                <RefreshCw size={16} className="animate-spin" />
-              ) : (
-                <Link size={16} />
-              )}
+            <Button onClick={handleSaveToken} disabled={loading || !botToken.trim()} className="flex-1">
+              {loading ? <RefreshCw size={16} className="animate-spin" /> : <Link size={16} />}
               {isConnected ? "Mettre à jour" : "Connecter"}
             </Button>
-
             {isConnected && (
-              <Button
-                variant="destructive"
-                onClick={handleDisconnect}
-                disabled={loading}
-              >
+              <Button variant="destructive" onClick={handleDisconnect} disabled={loading}>
                 <Unlink size={16} />
                 Déconnecter
               </Button>
@@ -211,26 +191,11 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
             <CardTitle className="text-base">Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button
-              variant="outline"
-              onClick={handleTestBot}
-              disabled={testLoading}
-              className="w-full justify-start"
-            >
-              {testLoading ? (
-                <RefreshCw size={16} className="animate-spin" />
-              ) : (
-                <Send size={16} />
-              )}
+            <Button variant="outline" onClick={handleTestBot} disabled={testLoading} className="w-full justify-start">
+              {testLoading ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
               Tester la connexion
             </Button>
-
-            <a
-              href={`https://t.me/${botInfo?.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
+            <a href={`https://t.me/${botInfo?.username}`} target="_blank" rel="noopener noreferrer" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Bot size={16} />
                 Ouvrir @{botInfo?.username} sur Telegram
@@ -257,7 +222,7 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
       </Card>
 
       {/* Welcome Message Config */}
-      {isConnected && <AdminTelegramWelcome />}
+      {isConnected && <AdminTelegramWelcome onShowTelegramUsers={() => setShowTelegramUsers(true)} />}
     </div>
   );
 };
