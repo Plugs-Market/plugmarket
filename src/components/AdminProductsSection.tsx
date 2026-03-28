@@ -329,7 +329,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                   return cat ? (
                     <span key={cid} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium border border-primary/20">
                       {cat.name}
-                      <button onClick={() => toggleCategoryId(cid)} className="hover:text-destructive"><X size={10} /></button>
+                      {!isReadOnly && <button onClick={() => toggleCategoryId(cid)} className="hover:text-destructive"><X size={10} /></button>}
                     </span>
                   ) : null;
                 })}
@@ -338,7 +338,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                   return sub ? (
                     <span key={sid} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-secondary text-foreground text-[10px] font-medium border border-border">
                       {sub.name}
-                      <button onClick={() => toggleSubcategoryId(sid)} className="hover:text-destructive"><X size={10} /></button>
+                      {!isReadOnly && <button onClick={() => toggleSubcategoryId(sid)} className="hover:text-destructive"><X size={10} /></button>}
                     </span>
                   ) : null;
                 })}
