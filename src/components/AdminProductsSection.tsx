@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Edit2, Package, ImageIcon, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, ImageIcon, X, Copy } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -178,6 +178,23 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     await callAdmin("delete_product", { id });
     toast.success("Produit supprimé");
     onRefetch();
+  };
+
+  const handleDuplicate = async (p: DBProduct) => {
+    const payload = {
+      name: p.name + " (copie)",
+      description: p.description || null,
+      price: p.price,
+      image_url: p.image_url || null,
+      category_ids: [...p.category_ids],
+      subcategory_ids: [...p.subcategory_ids],
+      variants: (p.variants || []).map((v) => ({ label: v.label, price: v.price })),
+    };
+    const res = await callAdmin("add_product", payload);
+    if (res?.success) {
+      toast.success("Produit dupliqué");
+      onRefetch();
+    }
   };
 
   // Get available subcategories from selected categories
@@ -358,6 +375,9 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
             <div className="flex gap-1 shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
                 <Edit2 size={14} />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(p)}>
+                <Copy size={14} />
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id, p.name)}>
                 <Trash2 size={14} />
