@@ -323,7 +323,6 @@ Deno.serve(async (req) => {
           await supabase.from("telegram_captcha").delete().eq("id", pending.id);
 
           // Send success then welcome
-          const from = message.from || {};
           await sendWelcomeMessage(tgBase, chatId, from, welcome);
         } else {
           await fetch(`${tgBase}/sendMessage`, {
