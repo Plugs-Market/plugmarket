@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { action, session_token, bot_token } = await req.json();
+    const { action, session_token, bot_token, image_url, message_text, buttons } = await req.json();
 
     const admin = await validateAdmin(supabase, session_token || null);
     if (!admin) {
@@ -181,6 +181,38 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, bot: tgData.result }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "get_welcome") {
+      const { data: welcome } = await supabase
+        .from("telegram_welcome")
+        .select("image_url, message_text, buttons")
+        .eq("id", 1)
+        .maybeSingle();
+
+      return new Response(
+        JSON.stringify({ success: true, welcome: welcome || { image_url: null, message_text: "Bienvenue ! 👋", buttons: [] } }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "save_welcome") {
+      const { error } = await supabase
+        .from("telegram_welcome")
+        .update({
+          image_url: image_url ?? null,
+          message_text: message_text || "Bienvenue ! 👋",
+          buttons: buttons || [],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", 1);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import AdminTelegramWelcome from "@/components/AdminTelegramWelcome";
 
 interface AdminTelegramProps {
   onBack: () => void;
@@ -240,7 +241,7 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
       )}
 
       {/* Guide */}
-      <Card className="bg-card card-neon-border">
+      <Card className="mb-4 bg-card card-neon-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Guide de configuration</CardTitle>
         </CardHeader>
@@ -254,6 +255,9 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
           </ol>
         </CardContent>
       </Card>
+
+      {/* Welcome Message Config */}
+      {isConnected && <AdminTelegramWelcome />}
     </div>
   );
 };

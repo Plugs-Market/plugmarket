@@ -318,6 +318,30 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_welcome: {
+        Row: {
+          buttons: Json
+          id: number
+          image_url: string | null
+          message_text: string
+          updated_at: string
+        }
+        Insert: {
+          buttons?: Json
+          id: number
+          image_url?: string | null
+          message_text?: string
+          updated_at?: string
+        }
+        Update: {
+          buttons?: Json
+          id?: number
+          image_url?: string | null
+          message_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
