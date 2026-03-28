@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DBProduct, DBCategory } from "@/hooks/useShopData";
+import { DBProduct, DBCategory, DBProductVariant } from "@/hooks/useShopData";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,11 @@ interface Props {
   onRefetch: () => void;
 }
 
+interface VariantForm {
+  label: string;
+  price: string;
+}
+
 interface ProductForm {
   name: string;
   description: string;
@@ -22,6 +27,7 @@ interface ProductForm {
   image_url: string;
   category_ids: string[];
   subcategory_ids: string[];
+  variants: VariantForm[];
 }
 
 const emptyForm: ProductForm = {
@@ -31,6 +37,7 @@ const emptyForm: ProductForm = {
   image_url: "",
   category_ids: [],
   subcategory_ids: [],
+  variants: [],
 };
 
 const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
@@ -66,6 +73,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       image_url: p.image_url || "",
       category_ids: [...p.category_ids],
       subcategory_ids: [...p.subcategory_ids],
+      variants: (p.variants || []).map((v) => ({ label: v.label, price: String(v.price) })),
     });
     setShowModal(true);
   };
@@ -134,6 +142,9 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       image_url: form.image_url || null,
       category_ids: form.category_ids,
       subcategory_ids: form.subcategory_ids,
+      variants: form.variants
+        .filter((v) => v.label.trim())
+        .map((v) => ({ label: v.label.trim(), price: parseFloat(v.price) || 0 })),
     };
 
     if (editProduct) {
@@ -145,6 +156,21 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     }
     setShowModal(false);
     onRefetch();
+  };
+
+  const addVariant = () => {
+    setForm((f) => ({ ...f, variants: [...f.variants, { label: "", price: "" }] }));
+  };
+
+  const removeVariant = (index: number) => {
+    setForm((f) => ({ ...f, variants: f.variants.filter((_, i) => i !== index) }));
+  };
+
+  const updateVariant = (index: number, field: keyof VariantForm, value: string) => {
+    setForm((f) => ({
+      ...f,
+      variants: f.variants.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
+    }));
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -255,6 +281,36 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
                 })}
               </div>
             )}
+
+            {/* Variants / Déclinaisons de prix */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Déclinaisons de prix</label>
+              {form.variants.map((v, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    value={v.label}
+                    onChange={(e) => updateVariant(i, "label", e.target.value)}
+                    placeholder="Paramètre (ex: 1g, 3.5g...)"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={v.price}
+                    onChange={(e) => updateVariant(i, "price", e.target.value)}
+                    placeholder="Prix"
+                    step="0.01"
+                    min="0"
+                    className="w-24"
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeVariant(i)}>
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="w-full gap-1" onClick={addVariant}>
+                <Plus size={14} /> Ajouter une déclinaison
+              </Button>
+            </div>
 
             {/* Image */}
             <div className="space-y-2">
