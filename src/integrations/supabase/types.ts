@@ -291,6 +291,30 @@ export type Database = {
           },
         ]
       }
+      telegram_captcha: {
+        Row: {
+          chat_id: number
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+        }
+        Insert: {
+          chat_id: number
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+        }
+        Update: {
+          chat_id?: number
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       telegram_config: {
         Row: {
           bot_name: string | null
@@ -321,6 +345,8 @@ export type Database = {
       telegram_welcome: {
         Row: {
           buttons: Json
+          captcha_enabled: boolean
+          captcha_message: string
           id: number
           image_url: string | null
           message_text: string
@@ -328,6 +354,8 @@ export type Database = {
         }
         Insert: {
           buttons?: Json
+          captcha_enabled?: boolean
+          captcha_message?: string
           id: number
           image_url?: string | null
           message_text?: string
@@ -335,6 +363,8 @@ export type Database = {
         }
         Update: {
           buttons?: Json
+          captcha_enabled?: boolean
+          captcha_message?: string
           id?: number
           image_url?: string | null
           message_text?: string
