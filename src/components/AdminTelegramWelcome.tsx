@@ -266,14 +266,16 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
             {imagePreview ? (
               <div className="relative rounded-lg overflow-hidden border border-border">
                 <img src={imagePreview} alt="Aperçu" className="w-full max-h-40 object-cover" />
-                <button
-                  onClick={removeImage}
-                  className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 text-destructive hover:bg-background transition-colors"
-                >
-                  <X size={14} />
-                </button>
+                {!isReadOnly && (
+                  <button
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 text-destructive hover:bg-background transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
-            ) : (
+            ) : !isReadOnly ? (
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
@@ -282,8 +284,10 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                 <span className="text-xs font-medium">Cliquer pour uploader une image</span>
                 <span className="text-xs opacity-60">JPG, PNG, WEBP • Max 5 Mo</span>
               </button>
+            ) : (
+              <p className="text-xs text-muted-foreground">Aucune image configurée</p>
             )}
-            {imagePreview && (
+            {!isReadOnly && imagePreview && (
               <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full text-xs">
                 <Upload size={12} />
                 Changer l'image
@@ -322,6 +326,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
               value={config.message_text}
               onChange={(e) => setConfig((prev) => ({ ...prev, message_text: e.target.value }))}
               className="text-sm min-h-[100px] font-mono"
+              disabled={isReadOnly}
             />
             <p className="text-xs text-muted-foreground">
               HTML : &lt;b&gt;gras&lt;/b&gt;, &lt;i&gt;italique&lt;/i&gt;, &lt;a href=""&gt;lien&lt;/a&gt;
@@ -335,13 +340,15 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
               <div key={index} className="p-3 rounded-lg border border-border bg-background/50 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground font-medium">Bouton {index + 1}</span>
-                  <button onClick={() => removeButton(index)} className="text-destructive hover:text-destructive/80 transition-colors">
-                    <Trash2 size={14} />
-                  </button>
+                  {!isReadOnly && (
+                    <button onClick={() => removeButton(index)} className="text-destructive hover:text-destructive/80 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <Input placeholder="Texte du bouton" value={btn.text} onChange={(e) => updateButton(index, "text", e.target.value)} className="text-xs" />
-                  <Select value={btn.type} onValueChange={(val) => updateButton(index, "type", val)}>
+                  <Input placeholder="Texte du bouton" value={btn.text} onChange={(e) => updateButton(index, "text", e.target.value)} className="text-xs" disabled={isReadOnly} />
+                  <Select value={btn.type} onValueChange={(val) => updateButton(index, "type", val)} disabled={isReadOnly}>
                     <SelectTrigger className="w-[110px] text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="link"><span className="flex items-center gap-1"><ExternalLink size={12} /> Lien</span></SelectItem>
@@ -354,13 +361,16 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                   value={btn.url}
                   onChange={(e) => updateButton(index, "url", e.target.value)}
                   className="text-xs"
+                  disabled={isReadOnly}
                 />
               </div>
             ))}
-            <Button variant="outline" size="sm" onClick={addButton} className="w-full" disabled={config.buttons.length >= 6}>
-              <Plus size={14} />
-              Ajouter un bouton
-            </Button>
+            {!isReadOnly && (
+              <Button variant="outline" size="sm" onClick={addButton} className="w-full" disabled={config.buttons.length >= 6}>
+                <Plus size={14} />
+                Ajouter un bouton
+              </Button>
+            )}
           </div>
 
           {/* Preview */}
@@ -428,6 +438,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
               onCheckedChange={(checked) =>
                 setConfig((prev) => ({ ...prev, captcha_enabled: checked }))
               }
+              disabled={isReadOnly}
             />
           </div>
 
@@ -463,6 +474,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                   value={config.captcha_message}
                   onChange={(e) => setConfig((prev) => ({ ...prev, captcha_message: e.target.value }))}
                   className="text-sm min-h-[80px] font-mono"
+                  disabled={isReadOnly}
                 />
                 <p className="text-xs text-muted-foreground">
                   ⚠️ La balise <code className="text-primary font-mono">{"{captcha}"}</code> affiche le code en format copiable (<code>&lt;code&gt;</code>) dans le message Telegram.
