@@ -6,6 +6,53 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// --- AES-256-GCM Decryption helpers ---
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+let _cachedKey: CryptoKey | null = null;
+async function getAESKey(): Promise<CryptoKey> {
+  if (_cachedKey) return _cachedKey;
+  const keyHex = Deno.env.get("AES_ENCRYPTION_KEY");
+  if (!keyHex) throw new Error("AES_ENCRYPTION_KEY not set");
+  let keyBytes: Uint8Array;
+  if (/^[0-9a-fA-F]{64}$/.test(keyHex)) {
+    keyBytes = hexToBytes(keyHex);
+  } else {
+    const encoded = new TextEncoder().encode(keyHex);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+    keyBytes = new Uint8Array(hashBuffer);
+  }
+  _cachedKey = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+  return _cachedKey;
+}
+
+async function decryptAES(encrypted: string): Promise<string> {
+  const key = await getAESKey();
+  const [ivB64, ctB64] = encrypted.split(":");
+  if (!ivB64 || !ctB64) return encrypted;
+  try {
+    const iv = base64ToBytes(ivB64);
+    const ciphertext = base64ToBytes(ctB64);
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    return encrypted;
+  }
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
