@@ -8,7 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { parseBBCode } from "@/lib/bbcode";
 import { Link } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { FileText, Shield } from "lucide-react";
 
 interface FAQItem {
   id: string;
@@ -65,13 +65,22 @@ const FAQSection = () => {
         </Accordion>
       )}
 
-      <Link
-        to="/terms"
-        className="flex items-center gap-2 mt-8 px-4 py-3 rounded-xl bg-card card-neon-border text-sm text-muted-foreground hover:text-primary transition-colors"
-      >
-        <FileText size={16} />
-        Termes et Conditions
-      </Link>
+      <div className="flex flex-col gap-2 mt-8">
+        <Link
+          to="/terms"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card card-neon-border text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <FileText size={16} />
+          Termes et Conditions
+        </Link>
+        <Link
+          to="/privacy"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card card-neon-border text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Shield size={16} />
+          Politique de Confidentialité
+        </Link>
+      </div>
     </div>
   );
 };
