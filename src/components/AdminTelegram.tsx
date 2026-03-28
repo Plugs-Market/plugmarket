@@ -228,7 +228,7 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
       </Card>
 
       {/* Welcome Message Config */}
-      {isConnected && <AdminTelegramWelcome onShowTelegramUsers={() => setShowTelegramUsers(true)} />}
+      {isConnected && <AdminTelegramWelcome onShowTelegramUsers={() => setShowTelegramUsers(true)} isReadOnly={isReadOnly} />}
     </div>
   );
 };

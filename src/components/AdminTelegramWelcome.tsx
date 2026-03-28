@@ -38,7 +38,7 @@ const CAPTCHA_TAGS = [
   { tag: "{username}", label: "Username", desc: "@username Telegram" },
 ];
 
-const AdminTelegramWelcome = ({ onShowTelegramUsers }: { onShowTelegramUsers?: () => void }) => {
+const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onShowTelegramUsers?: () => void; isReadOnly?: boolean }) => {
   const [config, setConfig] = useState<WelcomeConfig>({
     image_url: "",
     message_text: "Bienvenue ! 👋",
