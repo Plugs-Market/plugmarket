@@ -13,6 +13,7 @@ interface Props {
   products: DBProduct[];
   categories: DBCategory[];
   onRefetch: () => void;
+  isReadOnly?: boolean;
 }
 
 interface VariantForm {
@@ -42,7 +43,7 @@ const emptyForm: ProductForm = {
   variants: [],
 };
 
-const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
+const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = false }: Props) => {
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState<DBProduct | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
@@ -242,9 +243,11 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
 
   return (
     <div className="space-y-4">
-      <Button className="w-full gap-2" onClick={openAdd}>
-        <Plus size={16} /> Ajouter un produit
-      </Button>
+      {!isReadOnly && (
+        <Button className="w-full gap-2" onClick={openAdd}>
+          <Plus size={16} /> Ajouter un produit
+        </Button>
+      )}
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
@@ -437,17 +440,19 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
               <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
               <p className="text-xs text-primary font-semibold">{p.price.toFixed(2)} €</p>
             </div>
-            <div className="flex gap-1 shrink-0">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
-                <Edit2 size={14} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(p)}>
-                <Copy size={14} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id, p.name)}>
-                <Trash2 size={14} />
-              </Button>
-            </div>
+            {!isReadOnly && (
+              <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
+                  <Edit2 size={14} />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(p)}>
+                  <Copy size={14} />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id, p.name)}>
+                  <Trash2 size={14} />
+                </Button>
+              </div>
+            )}
           </div>
         ))}
         {products.length === 0 && (
