@@ -94,11 +94,13 @@ Deno.serve(async (req) => {
       };
       if (reply_markup) body.reply_markup = reply_markup;
 
-      await fetch(`${tgBase}/sendPhoto`, {
+      const res = await fetch(`${tgBase}/sendPhoto`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      const resData = await res.text();
+      console.log("sendPhoto response:", res.status, resData);
     } else {
       // Send text message with buttons
       const body: any = {
