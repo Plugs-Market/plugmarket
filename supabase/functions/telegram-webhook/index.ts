@@ -346,6 +346,16 @@ Deno.serve(async (req) => {
         parts.push(enc.encode(`--${boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n${captchaMsg}\r\n`));
         // parse_mode field
         parts.push(enc.encode(`--${boundary}\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n`));
+        // reply_markup with terms & privacy buttons
+        const captchaMarkup = JSON.stringify({
+          inline_keyboard: [
+            [
+              { text: "📜 Conditions d'utilisation", url: "https://plugmarket.lovable.app/terms" },
+              { text: "🔒 Confidentialité", url: "https://plugmarket.lovable.app/privacy" },
+            ],
+          ],
+        });
+        parts.push(enc.encode(`--${boundary}\r\nContent-Disposition: form-data; name="reply_markup"\r\n\r\n${captchaMarkup}\r\n`));
         // photo file
         parts.push(enc.encode(`--${boundary}\r\nContent-Disposition: form-data; name="photo"; filename="${fileName}"\r\nContent-Type: image/bmp\r\n\r\n`));
         parts.push(bmpData);
