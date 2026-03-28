@@ -93,7 +93,9 @@ Deno.serve(async (req) => {
           .select("id, name, image_url")
           .in("id", productIds);
         if (products) {
-          for (const p of products) productMap[p.id] = { name: p.name, image_url: p.image_url };
+          for (const p of products) {
+            productMap[p.id] = { name: await decryptAES(p.name), image_url: p.image_url };
+          }
         }
       }
 
