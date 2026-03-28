@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AdminTelegramWelcome from "@/components/AdminTelegramWelcome";
 import AdminTelegramUsers from "@/components/AdminTelegramUsers";
+import AdminTelegramAnnounce from "@/components/AdminTelegramAnnounce";
 
 interface AdminTelegramProps {
   onBack: () => void;
@@ -21,6 +22,7 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
   const [botInfo, setBotInfo] = useState<{ username: string; first_name: string } | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [showTelegramUsers, setShowTelegramUsers] = useState(false);
+  const [showAnnounce, setShowAnnounce] = useState(false);
 
   const sessionToken = localStorage.getItem("plugs_market_token");
 
@@ -115,6 +117,10 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
 
   if (showTelegramUsers) {
     return <AdminTelegramUsers onBack={() => setShowTelegramUsers(false)} isReadOnly={isReadOnly} />;
+  }
+
+  if (showAnnounce) {
+    return <AdminTelegramAnnounce onBack={() => setShowAnnounce(false)} />;
   }
 
   return (
@@ -214,7 +220,7 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
               </Button>
             )}
             {!isReadOnly && (
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" onClick={() => setShowAnnounce(true)} className="w-full justify-start">
                 <Megaphone size={16} />
                 Message d'Annonces
               </Button>
