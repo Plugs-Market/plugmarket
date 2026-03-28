@@ -220,7 +220,7 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
               </Button>
             )}
             {!isReadOnly && (
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" onClick={() => setShowAnnounce(true)} className="w-full justify-start">
                 <Megaphone size={16} />
                 Message d'Annonces
               </Button>
