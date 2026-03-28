@@ -69,9 +69,6 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
   const initials = appUser.username.slice(0, 2).toUpperCase();
 
   const menuItems = [
-    { icon: ShoppingBag, label: "Mes commandes" },
-    { icon: Heart, label: "Mes favoris" },
-    { icon: Bell, label: "Notifications" },
     { icon: Settings, label: "Paramètres" },
   ];
 
