@@ -109,6 +109,18 @@ const ProductPage = () => {
             {product.description}
           </p>
         )}
+
+        {product.video_url && (
+          <div className="rounded-xl overflow-hidden border border-border">
+            <video
+              src={product.video_url}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full"
+            />
+          </div>
+        )}
       </div>
 
       <BottomNav activeTab="menu" onTabChange={() => navigate("/")} />
