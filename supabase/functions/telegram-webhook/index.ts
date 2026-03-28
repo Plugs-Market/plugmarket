@@ -428,6 +428,16 @@ Deno.serve(async (req) => {
 
         // Check code (case-insensitive)
         if (text.trim().toUpperCase() === pending.code.toUpperCase()) {
+          // Delete the user's code message
+          try {
+            await fetch(`${tgBase}/deleteMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: chatId, message_id: message.message_id }),
+            });
+          } catch (e) {
+            console.error("Failed to delete user code message:", e);
+          }
           // Delete captcha image message from chat
           if (pending.message_id) {
             try {
