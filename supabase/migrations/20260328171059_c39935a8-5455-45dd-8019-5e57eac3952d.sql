@@ -1,0 +1,1 @@
+ALTER TABLE public.telegram_captcha ADD COLUMN IF NOT EXISTS message_id bigint;
