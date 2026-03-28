@@ -394,10 +394,12 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
           </div>
 
           {/* Save */}
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-            Sauvegarder
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+              Sauvegarder
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -488,10 +490,12 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
           )}
 
           {/* Save */}
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-            Sauvegarder
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+              Sauvegarder
+            </Button>
+          )}
         </CardContent>
       </Card>
 
