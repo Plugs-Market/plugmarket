@@ -351,6 +351,30 @@ export type Database = {
           },
         ]
       }
+      site_settings: {
+        Row: {
+          banner_url: string | null
+          id: number
+          site_slogan: string
+          site_title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          id?: number
+          site_slogan?: string
+          site_title?: string
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          id?: number
+          site_slogan?: string
+          site_title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subcategories: {
         Row: {
           category_id: string
