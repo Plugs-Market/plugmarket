@@ -142,6 +142,9 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       image_url: form.image_url || null,
       category_ids: form.category_ids,
       subcategory_ids: form.subcategory_ids,
+      variants: form.variants
+        .filter((v) => v.label.trim())
+        .map((v) => ({ label: v.label.trim(), price: parseFloat(v.price) || 0 })),
     };
 
     if (editProduct) {
@@ -153,6 +156,21 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     }
     setShowModal(false);
     onRefetch();
+  };
+
+  const addVariant = () => {
+    setForm((f) => ({ ...f, variants: [...f.variants, { label: "", price: "" }] }));
+  };
+
+  const removeVariant = (index: number) => {
+    setForm((f) => ({ ...f, variants: f.variants.filter((_, i) => i !== index) }));
+  };
+
+  const updateVariant = (index: number, field: keyof VariantForm, value: string) => {
+    setForm((f) => ({
+      ...f,
+      variants: f.variants.map((v, i) => (i === index ? { ...v, [field]: value } : v)),
+    }));
   };
 
   const handleDelete = async (id: string, name: string) => {
