@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, ArrowLeft, Store, Bot, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeft, Store, Bot, HelpCircle, LucideIcon } from "lucide-react";
 
-export type AdminTab = "dashboard" | "users" | "shop" | "telegram";
+export type AdminTab = "dashboard" | "users" | "shop" | "telegram" | "faq";
 
 interface AdminBottomNavProps {
   activeTab: AdminTab;
@@ -13,6 +13,7 @@ const TAB_META: Record<AdminTab, { label: string; icon: LucideIcon }> = {
   users: { label: "Users", icon: Users },
   shop: { label: "Boutique", icon: Store },
   telegram: { label: "Telegram", icon: Bot },
+  faq: { label: "FAQ", icon: HelpCircle },
 };
 
 const AdminBottomNav = ({ activeTab, onTabChange, onBack }: AdminBottomNavProps) => {
