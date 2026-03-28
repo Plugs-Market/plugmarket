@@ -119,6 +119,10 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
     return <AdminTelegramUsers onBack={() => setShowTelegramUsers(false)} isReadOnly={isReadOnly} />;
   }
 
+  if (showAnnounce) {
+    return <AdminTelegramAnnounce onBack={() => setShowAnnounce(false)} />;
+  }
+
   return (
     <div className="px-4 py-6 pb-28 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
