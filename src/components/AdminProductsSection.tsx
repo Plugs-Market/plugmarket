@@ -290,6 +290,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                     <Checkbox
                       checked={form.category_ids.includes(c.id)}
                       onCheckedChange={() => toggleCategoryId(c.id)}
+                      disabled={isReadOnly}
                     />
                     <span className="text-sm text-foreground">{c.name}</span>
                   </label>
@@ -310,6 +311,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                       <Checkbox
                         checked={form.subcategory_ids.includes(s.id)}
                         onCheckedChange={() => toggleSubcategoryId(s.id)}
+                        disabled={isReadOnly}
                       />
                       <span className="text-sm text-foreground">{s.name}</span>
                       <span className="text-[10px] text-muted-foreground ml-auto">{s.categoryName}</span>
