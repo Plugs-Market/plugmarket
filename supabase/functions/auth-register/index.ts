@@ -138,6 +138,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Rate limit registration attempts by IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitKey = `register:${clientIp}`;
+    const isLimited = await checkRateLimit(supabase, rateLimitKey);
+    if (isLimited) {
+      return new Response(
+        JSON.stringify({ error: "Trop de tentatives d'inscription. Réessayez dans 30 minutes." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const normalizedUsername = username.toLowerCase().trim();
     if (normalizedUsername.length < 3 || normalizedUsername.length > 30) {
       return new Response(
