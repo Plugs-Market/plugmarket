@@ -478,7 +478,7 @@ const AdminTelegramWelcome = () => {
                   </div>
                   <p className="text-sm whitespace-pre-wrap">
                     {(config.captcha_message || "Entrez le code :")
-                      .replace(/\{captcha\}/g, "")
+                      .replace(/\{captcha\}/g, "A7K9P")
                       .replace(/\{first_name\}/g, "Jean")
                       .replace(/\{username\}/g, "@jean_dupont")}
                   </p>
