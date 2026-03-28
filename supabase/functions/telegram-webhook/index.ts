@@ -219,6 +219,45 @@ Deno.serve(async (req) => {
       console.error("Track interaction error:", e);
     }
 
+    // Check if user is banned
+    const { data: interaction } = await supabase
+      .from("telegram_interactions")
+      .select("is_banned, ban_reason, ban_until")
+      .eq("chat_id", chatId)
+      .maybeSingle();
+
+    if (interaction?.is_banned) {
+      // Check if ban has expired
+      if (interaction.ban_until && new Date(interaction.ban_until) < new Date()) {
+        // Auto-unban
+        await supabase
+          .from("telegram_interactions")
+          .update({ is_banned: false, ban_reason: null, ban_until: null, banned_at: null })
+          .eq("chat_id", chatId);
+      } else {
+        // Still banned - send ban message
+        let banMsg = "🚫 <b>Vous êtes banni de ce bot.</b>";
+        if (interaction.ban_reason) {
+          banMsg += `\n\n<b>Raison :</b> ${interaction.ban_reason}`;
+        }
+        if (interaction.ban_until) {
+          const until = new Date(interaction.ban_until).toLocaleString("fr-FR", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+            hour: "2-digit", minute: "2-digit",
+          });
+          banMsg += `\n<b>Jusqu'au :</b> ${until}`;
+        } else {
+          banMsg += "\n<b>Durée :</b> Permanent";
+        }
+        await fetch(`${tgBase}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: banMsg, parse_mode: "HTML" }),
+        });
+        return new Response("OK", { status: 200 });
+      }
+    }
+
     // Get welcome config (including captcha settings)
     const { data: welcome } = await supabase
       .from("telegram_welcome")
