@@ -340,13 +340,15 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
               <div key={index} className="p-3 rounded-lg border border-border bg-background/50 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground font-medium">Bouton {index + 1}</span>
-                  <button onClick={() => removeButton(index)} className="text-destructive hover:text-destructive/80 transition-colors">
-                    <Trash2 size={14} />
-                  </button>
+                  {!isReadOnly && (
+                    <button onClick={() => removeButton(index)} className="text-destructive hover:text-destructive/80 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <Input placeholder="Texte du bouton" value={btn.text} onChange={(e) => updateButton(index, "text", e.target.value)} className="text-xs" />
-                  <Select value={btn.type} onValueChange={(val) => updateButton(index, "type", val)}>
+                  <Input placeholder="Texte du bouton" value={btn.text} onChange={(e) => updateButton(index, "text", e.target.value)} className="text-xs" disabled={isReadOnly} />
+                  <Select value={btn.type} onValueChange={(val) => updateButton(index, "type", val)} disabled={isReadOnly}>
                     <SelectTrigger className="w-[110px] text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="link"><span className="flex items-center gap-1"><ExternalLink size={12} /> Lien</span></SelectItem>
@@ -359,6 +361,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                   value={btn.url}
                   onChange={(e) => updateButton(index, "url", e.target.value)}
                   className="text-xs"
+                  disabled={isReadOnly}
                 />
               </div>
             ))}
