@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
         supabase.from("categories").select("id,name,sort_order").order("sort_order"),
         supabase.from("subcategories").select("id,category_id,name,sort_order").order("sort_order"),
         supabase.from("farms").select("id,name,sort_order").order("sort_order"),
-        supabase.from("products").select("id,name,description,price,image_url,sort_order").order("sort_order"),
+        supabase.from("products").select("id,name,description,price,image_url,video_url,sort_order").order("sort_order"),
         supabase.from("product_categories").select("product_id,category_id"),
         supabase.from("product_subcategories").select("product_id,subcategory_id"),
         supabase.from("product_variants").select("id,product_id,label,price,sort_order").order("sort_order"),
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
         supabase.from("categories").select("id,name,sort_order").order("sort_order"),
         supabase.from("subcategories").select("id,category_id,name,sort_order").order("sort_order"),
         supabase.from("farms").select("id,name,sort_order").order("sort_order"),
-        supabase.from("products").select("id,name,description,price,image_url,sort_order").order("sort_order"),
+        supabase.from("products").select("id,name,description,price,image_url,video_url,sort_order").order("sort_order"),
         supabase.from("product_categories").select("product_id,category_id"),
         supabase.from("product_subcategories").select("product_id,subcategory_id"),
         supabase.from("product_variants").select("id,product_id,label,price,sort_order").order("sort_order"),
@@ -324,7 +324,7 @@ Deno.serve(async (req) => {
 
     // --- PRODUCTS ---
     if (action === "add_product") {
-      const { name, description, price, image_url, category_ids, subcategory_ids, variants } = body;
+      const { name, description, price, image_url, video_url, category_ids, subcategory_ids, variants } = body;
       if (!name?.trim()) return errResponse("Nom requis");
       const encName = await encryptAES(name.trim());
       const encDesc = description?.trim() ? await encryptAES(description.trim()) : null;
@@ -334,6 +334,7 @@ Deno.serve(async (req) => {
         description: encDesc,
         price: price || 0,
         image_url: image_url || null,
+        video_url: video_url || null,
         sort_order: (maxOrder?.sort_order ?? 0) + 1,
       }).select("id").single();
       if (error) throw error;
@@ -359,13 +360,14 @@ Deno.serve(async (req) => {
     }
 
     if (action === "update_product") {
-      const { id, name, description, price, image_url, category_ids, subcategory_ids, variants } = body;
+      const { id, name, description, price, image_url, video_url, category_ids, subcategory_ids, variants } = body;
       if (!id) return errResponse("ID manquant");
       const updates: Record<string, unknown> = {};
       if (name?.trim()) updates.name = await encryptAES(name.trim());
       if (description !== undefined) updates.description = description?.trim() ? await encryptAES(description.trim()) : null;
       if (price !== undefined) updates.price = price;
       if (image_url !== undefined) updates.image_url = image_url;
+      if (video_url !== undefined) updates.video_url = video_url;
       if (Object.keys(updates).length > 0) {
         const { error } = await supabase.from("products").update(updates).eq("id", id);
         if (error) throw error;
@@ -421,6 +423,22 @@ Deno.serve(async (req) => {
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       const path = `${crypto.randomUUID()}-${file_name}`;
       const { error } = await supabase.storage.from("product-images").upload(path, bytes, { contentType: content_type || "image/jpeg" });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+      return new Response(
+        JSON.stringify({ success: true, url: urlData.publicUrl }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "upload_product_video") {
+      const { video_base64, file_name, content_type } = body;
+      if (!video_base64 || !file_name) return errResponse("Vidéo requise");
+      const binary = atob(video_base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const path = `videos/${crypto.randomUUID()}-${file_name}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, bytes, { contentType: content_type || "video/mp4" });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
       return new Response(

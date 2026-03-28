@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Edit2, Package, ImageIcon, X, Copy } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, ImageIcon, X, Copy, Video } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ interface ProductForm {
   description: string;
   price: string;
   image_url: string;
+  video_url: string;
   category_ids: string[];
   subcategory_ids: string[];
   variants: VariantForm[];
@@ -35,6 +36,7 @@ const emptyForm: ProductForm = {
   description: "",
   price: "",
   image_url: "",
+  video_url: "",
   category_ids: [],
   subcategory_ids: [],
   variants: [],
@@ -45,6 +47,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
   const [editProduct, setEditProduct] = useState<DBProduct | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const callAdmin = async (action: string, extra: Record<string, unknown> = {}) => {
     const token = localStorage.getItem("plugs_market_token");
@@ -71,6 +74,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: p.description || "",
       price: String(p.price),
       image_url: p.image_url || "",
+      video_url: p.video_url || "",
       category_ids: [...p.category_ids],
       subcategory_ids: [...p.subcategory_ids],
       variants: (p.variants || []).map((v) => ({ label: v.label, price: String(v.price) })),
@@ -108,6 +112,36 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     }
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Vidéo trop lourde (max 50MB)");
+      return;
+    }
+    setUploadingVideo(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+        const data = await callAdmin("upload_product_video", {
+          video_base64: base64,
+          file_name: file.name,
+          content_type: file.type,
+        });
+        if (data?.url) {
+          setForm((f) => ({ ...f, video_url: data.url }));
+          toast.success("Vidéo uploadée");
+        }
+        setUploadingVideo(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploadingVideo(false);
+      toast.error("Erreur upload vidéo");
+    }
+  };
+
   const toggleCategoryId = (id: string) => {
     setForm((f) => {
       const has = f.category_ids.includes(id);
@@ -140,6 +174,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: form.description || null,
       price: parseFloat(form.price) || 0,
       image_url: form.image_url || null,
+      video_url: form.video_url || null,
       category_ids: form.category_ids,
       subcategory_ids: form.subcategory_ids,
       variants: form.variants
@@ -186,6 +221,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: p.description || null,
       price: p.price,
       image_url: p.image_url || null,
+      video_url: p.video_url || null,
       category_ids: [...p.category_ids],
       subcategory_ids: [...p.subcategory_ids],
       variants: (p.variants || []).map((v) => ({ label: v.label, price: v.price })),
@@ -348,10 +384,39 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
                 />
               </label>
             </div>
+
+            {/* Video */}
+            <div className="space-y-2">
+              {form.video_url && (
+                <div className="relative">
+                  <video src={form.video_url} className="w-full h-32 object-cover rounded-lg border border-border" controls />
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, video_url: "" }))}
+                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+              <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary transition-colors">
+                <Video size={16} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {uploadingVideo ? "Upload vidéo en cours..." : "Ajouter une vidéo"}
+                </span>
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={handleVideoUpload}
+                  disabled={uploadingVideo}
+                />
+              </label>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowModal(false)}>Annuler</Button>
-            <Button disabled={!form.name.trim() || uploading} onClick={handleSave}>
+            <Button disabled={!form.name.trim() || uploading || uploadingVideo} onClick={handleSave}>
               {editProduct ? "Enregistrer" : "Créer"}
             </Button>
           </DialogFooter>

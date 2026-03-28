@@ -34,6 +34,7 @@ export interface DBProduct {
   description: string | null;
   price: number;
   image_url: string | null;
+  video_url: string | null;
   category_ids: string[];
   subcategory_ids: string[];
   sort_order: number;
@@ -94,6 +95,7 @@ function transformData(data: any): { categories: DBCategory[]; farms: DBFarm[]; 
     description: p.description,
     price: Number(p.price),
     image_url: p.image_url,
+    video_url: p.video_url || null,
     category_ids: p.category_ids || [],
     subcategory_ids: p.subcategory_ids || [],
     sort_order: p.sort_order,
