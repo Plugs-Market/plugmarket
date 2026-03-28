@@ -59,6 +59,9 @@ Après avoir copié le projet, vous devrez :
 | **Bannière personnalisable** | Header avec titre, slogan et image de fond personnalisables |
 | **Design responsive** | Interface adaptée mobile et desktop |
 | **Navigation par onglets** | Barre de navigation en bas (Menu, Avis, FAQ, Contact) |
+| **Conditions d'utilisation** | Page légale avec les termes et conditions du service |
+| **Politique de confidentialité** | Page légale détaillant la gestion des données personnelles |
+| **Paramètres utilisateur** | Modification du mot de passe, du nom d'utilisateur et récupération de compte |
 
 ### 🔐 Authentification
 
@@ -79,7 +82,7 @@ Après avoir copié le projet, vous devrez :
 | **Dashboard** | Vue d'ensemble avec accès rapide à toutes les sections |
 | **Utilisateurs** | Liste des utilisateurs, modification des grades, suppression |
 | **Boutique** | Gestion complète des produits, catégories, sous-catégories, fermes et variantes |
-| **Telegram** | Configuration du bot Telegram, gestion des utilisateurs du bot |
+| **Telegram** | Configuration du bot, utilisateurs, message de bienvenue, annonces |
 | **FAQ** | Ajout, modification, suppression et réorganisation des questions |
 | **Website** | Personnalisation du titre, slogan et bannière du site |
 | **Mode Demo Admin** | Accès en lecture seule pour les comptes de démonstration |
@@ -90,10 +93,13 @@ Après avoir copié le projet, vous devrez :
 |---|---|
 | **Configuration du bot** | Connexion/déconnexion du bot via token |
 | **Message de bienvenue** | Message personnalisable avec image et boutons |
-| **Captcha** | Vérification anti-bot avec code à 4 chiffres |
+| **Captcha** | Vérification anti-bot avec code à 4 chiffres et image générée |
+| **Nettoyage auto du chat** | Suppression automatique des messages captcha après validation |
+| **Boutons légaux** | Liens vers les conditions d'utilisation et la politique de confidentialité |
 | **Suivi des interactions** | Historique des utilisateurs du bot (messages, dates, langue) |
 | **Gestion des bans** | Bannissement temporaire ou permanent des utilisateurs |
 | **Webhook automatique** | Configuration automatique du webhook Telegram |
+| **Domaine personnalisé** | Redirection des liens vers le domaine plugs-market.fr |
 
 ### 🗄️ Backend (Edge Functions)
 
@@ -146,7 +152,7 @@ src/
 │   ├── ProductCard.tsx   # Carte produit
 │   └── ...
 ├── hooks/               # Hooks personnalisés (auth, shop data, telegram)
-├── pages/               # Pages (Index, ProductPage, NotFound)
+├── pages/               # Pages (Index, ProductPage, TermsPage, PrivacyPage, NotFound)
 ├── lib/                 # Utilitaires (BBCode, Telegram, utils)
 ├── integrations/        # Client et types Supabase (auto-généré)
 └── data/                # Données statiques
