@@ -68,8 +68,7 @@ Deno.serve(async (req) => {
     if (action === "get_stats") {
       const { count: totalUsers } = await supabase.from("app_users").select("*", { count: "exact", head: true });
       const { count: admins } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Admin");
-      const { count: vips } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "VIP");
-      const { count: moderators } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Moderateur");
+      const { count: demoAdmins } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Demo Admin");
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const { count: recentSignups } = await supabase.from("app_users").select("*", { count: "exact", head: true }).gte("created_at", sevenDaysAgo);
       const { count: telegramLinked } = await supabase.from("app_users").select("*", { count: "exact", head: true }).not("telegram_id", "is", null);
