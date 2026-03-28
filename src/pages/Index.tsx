@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import FAQSection from "@/components/FAQSection";
 import ContactSection from "@/components/ContactSection";
 import ProfileSection from "@/components/ProfileSection";
+import AllReviews from "@/components/AllReviews";
 import { useShopData } from "@/hooks/useShopData";
 
 type Tab = "menu" | "reviews" | "faq" | "contact";
