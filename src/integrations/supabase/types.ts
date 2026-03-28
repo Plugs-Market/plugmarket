@@ -344,10 +344,14 @@ export type Database = {
       }
       telegram_interactions: {
         Row: {
+          ban_reason: string | null
+          ban_until: string | null
+          banned_at: string | null
           chat_id: number
           first_name: string | null
           first_seen_at: string
           id: string
+          is_banned: boolean
           language_code: string | null
           last_name: string | null
           last_seen_at: string
@@ -355,10 +359,14 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          ban_reason?: string | null
+          ban_until?: string | null
+          banned_at?: string | null
           chat_id: number
           first_name?: string | null
           first_seen_at?: string
           id?: string
+          is_banned?: boolean
           language_code?: string | null
           last_name?: string | null
           last_seen_at?: string
@@ -366,10 +374,14 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          ban_reason?: string | null
+          ban_until?: string | null
+          banned_at?: string | null
           chat_id?: number
           first_name?: string | null
           first_seen_at?: string
           id?: string
+          is_banned?: boolean
           language_code?: string | null
           last_name?: string | null
           last_seen_at?: string
