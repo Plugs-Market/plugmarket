@@ -1,0 +1,1 @@
+CREATE POLICY "deny_select_product_reviews" ON product_reviews AS RESTRICTIVE FOR SELECT TO anon, authenticated USING (false);
