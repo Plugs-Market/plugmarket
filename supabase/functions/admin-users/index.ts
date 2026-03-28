@@ -76,9 +76,8 @@ Deno.serve(async (req) => {
       const stats = {
         totalUsers: totalUsers || 0,
         admins: admins || 0,
-        vips: vips || 0,
-        moderators: moderators || 0,
-        members: (totalUsers || 0) - (admins || 0) - (vips || 0) - (moderators || 0),
+        demoAdmins: demoAdmins || 0,
+        members: (totalUsers || 0) - (admins || 0) - (demoAdmins || 0),
         recentSignups: recentSignups || 0,
         telegramLinked: telegramLinked || 0,
       };
