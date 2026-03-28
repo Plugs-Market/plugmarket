@@ -282,6 +282,36 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
               </div>
             )}
 
+            {/* Variants / Déclinaisons de prix */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Déclinaisons de prix</label>
+              {form.variants.map((v, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    value={v.label}
+                    onChange={(e) => updateVariant(i, "label", e.target.value)}
+                    placeholder="Paramètre (ex: 1g, 3.5g...)"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={v.price}
+                    onChange={(e) => updateVariant(i, "price", e.target.value)}
+                    placeholder="Prix"
+                    step="0.01"
+                    min="0"
+                    className="w-24"
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeVariant(i)}>
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="w-full gap-1" onClick={addVariant}>
+                <Plus size={14} /> Ajouter une déclinaison
+              </Button>
+            </div>
+
             {/* Image */}
             <div className="space-y-2">
               {form.image_url && (
