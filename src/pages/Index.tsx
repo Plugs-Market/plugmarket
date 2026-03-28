@@ -86,12 +86,7 @@ const Index = () => {
         </>
       )}
 
-      {activeTab === "reviews" && (
-        <div className="px-4 py-6">
-          <h2 className="font-display text-2xl font-bold text-foreground mb-6 neon-text">Avis clients</h2>
-          <p className="text-muted-foreground text-center py-12">Bientôt disponible</p>
-        </div>
-      )}
+      {activeTab === "reviews" && <AllReviews />}
 
       {activeTab === "faq" && <FAQSection />}
       {activeTab === "contact" && (
