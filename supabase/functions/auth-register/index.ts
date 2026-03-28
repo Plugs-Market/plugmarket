@@ -79,6 +79,27 @@ async function generateUniqueSeedPhrase(supabase: ReturnType<typeof createClient
   throw new Error("seed_generation_failed");
 }
 
+const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT_WINDOW_MINUTES = 30;
+
+async function checkRateLimit(supabase: ReturnType<typeof createClient>, key: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString();
+  await supabase.from("rate_limits").delete().lt("window_start", windowStart);
+  const { data } = await supabase
+    .from("rate_limits")
+    .select("id, attempts")
+    .eq("key", key)
+    .gte("window_start", windowStart)
+    .maybeSingle();
+  if (!data) {
+    await supabase.from("rate_limits").insert({ key, attempts: 1, window_start: new Date().toISOString() });
+    return false;
+  }
+  if (data.attempts >= RATE_LIMIT_MAX) return true;
+  await supabase.from("rate_limits").update({ attempts: data.attempts + 1 }).eq("id", data.id);
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
