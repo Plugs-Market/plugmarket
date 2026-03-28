@@ -413,7 +413,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      track_telegram_interaction: {
+        Args: {
+          p_chat_id: number
+          p_first_name?: string
+          p_language_code?: string
+          p_last_name?: string
+          p_username?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
