@@ -207,13 +207,17 @@ Deno.serve(async (req) => {
     const tgBase = `https://api.telegram.org/bot${botToken}`;
 
     // Track user interaction
-    await supabase.rpc("track_telegram_interaction", {
-      p_chat_id: chatId,
-      p_username: from.username || null,
-      p_first_name: from.first_name || null,
-      p_last_name: from.last_name || null,
-      p_language_code: from.language_code || null,
-    }).catch((e: any) => console.error("Track interaction error:", e));
+    try {
+      await supabase.rpc("track_telegram_interaction", {
+        p_chat_id: chatId,
+        p_username: from.username || null,
+        p_first_name: from.first_name || null,
+        p_last_name: from.last_name || null,
+        p_language_code: from.language_code || null,
+      });
+    } catch (e) {
+      console.error("Track interaction error:", e);
+    }
 
     // Get welcome config (including captcha settings)
     const { data: welcome } = await supabase
