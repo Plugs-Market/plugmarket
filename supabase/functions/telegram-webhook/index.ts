@@ -24,10 +24,12 @@ Deno.serve(async (req) => {
 
   try {
     const update = await req.json();
+    console.log("Webhook received update:", JSON.stringify(update));
 
     // Only handle /start command
     const message = update?.message;
     if (!message?.text || !message.text.startsWith("/start")) {
+      console.log("Not a /start command, ignoring");
       return new Response("OK", { status: 200 });
     }
 
