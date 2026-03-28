@@ -13,7 +13,7 @@ interface AdminUser {
   created_at: string;
 }
 
-const GRADES = ["membre", "VIP", "Moderateur", "Admin"];
+const GRADES = ["membre", "Demo Admin", "Admin"];
 
 const AdminUsersList = () => {
   const { user } = useAuth();

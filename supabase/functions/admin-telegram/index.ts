@@ -27,7 +27,7 @@ async function validateAdmin(supabase: ReturnType<typeof createClient>, token: s
     .select("id, grade")
     .eq("id", session.user_id)
     .maybeSingle();
-  if (!user || user.grade !== "Admin") return null;
+  if (!user || (user.grade !== "Admin" && user.grade !== "Demo Admin")) return null;
   return user;
 }
 

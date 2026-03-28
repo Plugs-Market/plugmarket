@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
     const admin = await validateSession(supabase, session_token || null);
 
-    if (!admin || admin.grade !== "Admin") {
+    if (!admin || (admin.grade !== "Admin" && admin.grade !== "Demo Admin")) {
       return new Response(
         JSON.stringify({ error: "Accès refusé" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -68,8 +68,7 @@ Deno.serve(async (req) => {
     if (action === "get_stats") {
       const { count: totalUsers } = await supabase.from("app_users").select("*", { count: "exact", head: true });
       const { count: admins } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Admin");
-      const { count: vips } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "VIP");
-      const { count: moderators } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Moderateur");
+      const { count: demoAdmins } = await supabase.from("app_users").select("*", { count: "exact", head: true }).eq("grade", "Demo Admin");
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const { count: recentSignups } = await supabase.from("app_users").select("*", { count: "exact", head: true }).gte("created_at", sevenDaysAgo);
       const { count: telegramLinked } = await supabase.from("app_users").select("*", { count: "exact", head: true }).not("telegram_id", "is", null);
@@ -77,9 +76,8 @@ Deno.serve(async (req) => {
       const stats = {
         totalUsers: totalUsers || 0,
         admins: admins || 0,
-        vips: vips || 0,
-        moderators: moderators || 0,
-        members: (totalUsers || 0) - (admins || 0) - (vips || 0) - (moderators || 0),
+        demoAdmins: demoAdmins || 0,
+        members: (totalUsers || 0) - (admins || 0) - (demoAdmins || 0),
         recentSignups: recentSignups || 0,
         telegramLinked: telegramLinked || 0,
       };
