@@ -252,7 +252,9 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editProduct ? "Modifier le produit" : "Nouveau produit"}</DialogTitle>
+            <DialogTitle>
+              {isReadOnly ? "Détails du produit" : editProduct ? "Modifier le produit" : "Nouveau produit"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <Input
@@ -260,12 +262,14 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="Nom du produit..."
               autoFocus
+              disabled={isReadOnly}
             />
             <Textarea
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Description..."
               rows={3}
+              disabled={isReadOnly}
             />
             <Input
               type="number"
@@ -274,6 +278,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
               placeholder="Prix (€)..."
               step="0.01"
               min="0"
+              disabled={isReadOnly}
             />
 
             {/* Multi-select Menus */}
@@ -418,10 +423,14 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowModal(false)}>Annuler</Button>
-            <Button disabled={!form.name.trim() || uploading || uploadingVideo} onClick={handleSave}>
-              {editProduct ? "Enregistrer" : "Créer"}
+            <Button variant="outline" onClick={() => setShowModal(false)}>
+              {isReadOnly ? "Fermer" : "Annuler"}
             </Button>
+            {!isReadOnly && (
+              <Button disabled={!form.name.trim() || uploading || uploadingVideo} onClick={handleSave}>
+                {editProduct ? "Enregistrer" : "Créer"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -440,7 +449,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
               <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
               <p className="text-xs text-primary font-semibold">{p.price.toFixed(2)} €</p>
             </div>
-            {!isReadOnly && (
+            {!isReadOnly ? (
               <div className="flex gap-1 shrink-0">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
                   <Edit2 size={14} />
@@ -452,6 +461,10 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                   <Trash2 size={14} />
                 </Button>
               </div>
+            ) : (
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => openEdit(p)}>
+                <Edit2 size={14} />
+              </Button>
             )}
           </div>
         ))}

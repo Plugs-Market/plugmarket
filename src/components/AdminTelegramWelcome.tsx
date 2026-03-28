@@ -322,6 +322,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
               value={config.message_text}
               onChange={(e) => setConfig((prev) => ({ ...prev, message_text: e.target.value }))}
               className="text-sm min-h-[100px] font-mono"
+              disabled={isReadOnly}
             />
             <p className="text-xs text-muted-foreground">
               HTML : &lt;b&gt;gras&lt;/b&gt;, &lt;i&gt;italique&lt;/i&gt;, &lt;a href=""&gt;lien&lt;/a&gt;
@@ -357,10 +358,12 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                 />
               </div>
             ))}
-            <Button variant="outline" size="sm" onClick={addButton} className="w-full" disabled={config.buttons.length >= 6}>
-              <Plus size={14} />
-              Ajouter un bouton
-            </Button>
+            {!isReadOnly && (
+              <Button variant="outline" size="sm" onClick={addButton} className="w-full" disabled={config.buttons.length >= 6}>
+                <Plus size={14} />
+                Ajouter un bouton
+              </Button>
+            )}
           </div>
 
           {/* Preview */}
@@ -428,6 +431,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
               onCheckedChange={(checked) =>
                 setConfig((prev) => ({ ...prev, captcha_enabled: checked }))
               }
+              disabled={isReadOnly}
             />
           </div>
 
