@@ -110,11 +110,13 @@ Deno.serve(async (req) => {
       };
       if (reply_markup) body.reply_markup = reply_markup;
 
-      await fetch(`${tgBase}/sendMessage`, {
+      const res = await fetch(`${tgBase}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      const resData = await res.text();
+      console.log("sendMessage response:", res.status, resData);
     }
 
     return new Response("OK", { status: 200 });
