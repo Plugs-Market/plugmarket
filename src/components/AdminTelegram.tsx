@@ -11,9 +11,10 @@ import AdminTelegramUsers from "@/components/AdminTelegramUsers";
 
 interface AdminTelegramProps {
   onBack: () => void;
+  isReadOnly?: boolean;
 }
 
-const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
+const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
   const [botToken, setBotToken] = useState("");
   const [loading, setLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
@@ -113,7 +114,7 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
   };
 
   if (showTelegramUsers) {
-    return <AdminTelegramUsers onBack={() => setShowTelegramUsers(false)} />;
+    return <AdminTelegramUsers onBack={() => setShowTelegramUsers(false)} isReadOnly={isReadOnly} />;
   }
 
   return (
@@ -150,11 +151,13 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Configuration du Bot</CardTitle>
           <CardDescription>
-            Obtenez votre token depuis{" "}
-            <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              @BotFather
-            </a>{" "}
-            sur Telegram
+            {isReadOnly ? "Configuration actuelle du bot Telegram" : (
+              <>Obtenez votre token depuis{" "}
+              <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                @BotFather
+              </a>{" "}
+              sur Telegram</>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -167,20 +170,23 @@ const AdminTelegram = ({ onBack }: AdminTelegramProps) => {
               value={botToken}
               onChange={(e) => setBotToken(e.target.value)}
               className="font-mono text-xs"
+              disabled={isReadOnly}
             />
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleSaveToken} disabled={loading || !botToken.trim()} className="flex-1">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : <Link size={16} />}
-              {isConnected ? "Mettre à jour" : "Connecter"}
-            </Button>
-            {isConnected && (
-              <Button variant="destructive" onClick={handleDisconnect} disabled={loading}>
-                <Unlink size={16} />
-                Déconnecter
+          {!isReadOnly && (
+            <div className="flex gap-2">
+              <Button onClick={handleSaveToken} disabled={loading || !botToken.trim()} className="flex-1">
+                {loading ? <RefreshCw size={16} className="animate-spin" /> : <Link size={16} />}
+                {isConnected ? "Mettre à jour" : "Connecter"}
               </Button>
-            )}
-          </div>
+              {isConnected && (
+                <Button variant="destructive" onClick={handleDisconnect} disabled={loading}>
+                  <Unlink size={16} />
+                  Déconnecter
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
