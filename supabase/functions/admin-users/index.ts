@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
     const admin = await validateSession(supabase, session_token || null);
 
-    if (!admin || admin.grade !== "Admin") {
+    if (!admin || (admin.grade !== "Admin" && admin.grade !== "Demo Admin")) {
       return new Response(
         JSON.stringify({ error: "Accès refusé" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }

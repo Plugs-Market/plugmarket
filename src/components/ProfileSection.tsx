@@ -17,8 +17,7 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<"login" | "register">("login");
 
-  if (showAdminPanel && appUser?.grade === "Admin" && onAdminBack) {
-    return <AdminPanel onBack={onAdminBack} />;
+  if (showAdminPanel && (appUser?.grade === "Admin" || appUser?.grade === "Demo Admin") && onAdminBack) {
   }
 
   if (authLoading) {
@@ -75,7 +74,7 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
     { icon: Settings, label: "Paramètres" },
   ];
 
-  const isAdmin = appUser.grade === "Admin";
+  const isAdmin = appUser.grade === "Admin" || appUser.grade === "Demo Admin";
 
   return (
     <div className="px-4 py-6 pb-28 max-w-2xl mx-auto">
