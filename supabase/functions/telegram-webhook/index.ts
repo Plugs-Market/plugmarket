@@ -236,9 +236,9 @@ Deno.serve(async (req) => {
         const boundary = "----CaptchaBoundary" + Date.now();
         const fileName = "captcha.bmp";
 
-        // Build captcha message text
+        // Build captcha message text - replace {captcha} with the actual code in <code> tags
         let captchaMsg = (welcome?.captcha_message || "Entrez le code : {captcha}")
-          .replace(/\{captcha\}/g, "");
+          .replace(/\{captcha\}/g, `<code>${code}</code>`);
         captchaMsg = replaceTemplateTags(captchaMsg, from);
 
         // Build multipart body
