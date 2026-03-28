@@ -170,10 +170,13 @@ const AdminFAQ = ({ onBack, isReadOnly = false }: AdminFAQProps) => {
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="La réponse..."
-                rows={5}
-                className="resize-none"
+                rows={8}
+                className="resize-none font-mono text-xs"
                 disabled={isReadOnly}
               />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                BBCode : [b]gras[/b] [i]italique[/i] [u]souligné[/u] [s]barré[/s] [color=red]couleur[/color] [url=lien]texte[/url] [list][*]item[/list]
+              </p>
             </div>
           </div>
           <DialogFooter>
