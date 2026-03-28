@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DBProduct, DBCategory } from "@/hooks/useShopData";
+import { DBProduct, DBCategory, DBProductVariant } from "@/hooks/useShopData";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,11 @@ interface Props {
   onRefetch: () => void;
 }
 
+interface VariantForm {
+  label: string;
+  price: string;
+}
+
 interface ProductForm {
   name: string;
   description: string;
@@ -22,6 +27,7 @@ interface ProductForm {
   image_url: string;
   category_ids: string[];
   subcategory_ids: string[];
+  variants: VariantForm[];
 }
 
 const emptyForm: ProductForm = {
@@ -31,6 +37,7 @@ const emptyForm: ProductForm = {
   image_url: "",
   category_ids: [],
   subcategory_ids: [],
+  variants: [],
 };
 
 const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
