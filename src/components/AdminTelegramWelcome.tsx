@@ -467,6 +467,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
                   value={config.captcha_message}
                   onChange={(e) => setConfig((prev) => ({ ...prev, captcha_message: e.target.value }))}
                   className="text-sm min-h-[80px] font-mono"
+                  disabled={isReadOnly}
                 />
                 <p className="text-xs text-muted-foreground">
                   ⚠️ La balise <code className="text-primary font-mono">{"{captcha}"}</code> affiche le code en format copiable (<code>&lt;code&gt;</code>) dans le message Telegram.

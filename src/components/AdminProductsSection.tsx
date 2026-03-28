@@ -353,6 +353,7 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                     onChange={(e) => updateVariant(i, "label", e.target.value)}
                     placeholder="Paramètre (ex: 1g, 3.5g...)"
                     className="flex-1"
+                    disabled={isReadOnly}
                   />
                   <Input
                     type="number"
@@ -362,15 +363,20 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
                     step="0.01"
                     min="0"
                     className="w-24"
+                    disabled={isReadOnly}
                   />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeVariant(i)}>
-                    <Trash2 size={14} />
-                  </Button>
+                  {!isReadOnly && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeVariant(i)}>
+                      <Trash2 size={14} />
+                    </Button>
+                  )}
                 </div>
               ))}
-              <Button type="button" variant="outline" size="sm" className="w-full gap-1" onClick={addVariant}>
-                <Plus size={14} /> Ajouter une déclinaison
-              </Button>
+              {!isReadOnly && (
+                <Button type="button" variant="outline" size="sm" className="w-full gap-1" onClick={addVariant}>
+                  <Plus size={14} /> Ajouter une déclinaison
+                </Button>
+              )}
             </div>
 
             {/* Image */}
@@ -378,19 +384,21 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
               {form.image_url && (
                 <img src={form.image_url} alt="Preview" className="w-full h-32 object-cover rounded-lg border border-border" />
               )}
-              <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary transition-colors">
-                <ImageIcon size={16} className="text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  {uploading ? "Upload en cours..." : "Ajouter une image"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={uploading}
-                />
-              </label>
+              {!isReadOnly && (
+                <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary transition-colors">
+                  <ImageIcon size={16} className="text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {uploading ? "Upload en cours..." : "Ajouter une image"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                  />
+                </label>
+              )}
             </div>
 
             {/* Video */}
@@ -398,28 +406,32 @@ const AdminProductsSection = ({ products, categories, onRefetch, isReadOnly = fa
               {form.video_url && (
                 <div className="relative">
                   <video src={form.video_url} className="w-full h-32 object-cover rounded-lg border border-border" controls />
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, video_url: "" }))}
-                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
-                  >
-                    <X size={12} />
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, video_url: "" }))}
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
                 </div>
               )}
-              <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary transition-colors">
-                <Video size={16} className="text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  {uploadingVideo ? "Upload vidéo en cours..." : "Ajouter une vidéo"}
-                </span>
-                <input
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={handleVideoUpload}
-                  disabled={uploadingVideo}
-                />
-              </label>
+              {!isReadOnly && (
+                <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary transition-colors">
+                  <Video size={16} className="text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {uploadingVideo ? "Upload vidéo en cours..." : "Ajouter une vidéo"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={handleVideoUpload}
+                    disabled={uploadingVideo}
+                  />
+                </label>
+              )}
             </div>
           </div>
           <DialogFooter>
