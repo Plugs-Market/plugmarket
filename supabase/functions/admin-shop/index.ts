@@ -246,6 +246,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (admin.grade === "Demo Admin") {
+      return new Response(
+        JSON.stringify({ error: "Accès en lecture seule" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // --- CATEGORIES ---
     if (action === "add_category") {
       const { name } = body;
