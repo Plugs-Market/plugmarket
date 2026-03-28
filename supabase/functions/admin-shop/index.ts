@@ -134,13 +134,14 @@ Deno.serve(async (req) => {
       // Pre-warm the AES key
       await getAESKey();
 
-      const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes] = await Promise.all([
+      const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes, pvRes] = await Promise.all([
         supabase.from("categories").select("id,name,sort_order").order("sort_order"),
         supabase.from("subcategories").select("id,category_id,name,sort_order").order("sort_order"),
         supabase.from("farms").select("id,name,sort_order").order("sort_order"),
         supabase.from("products").select("id,name,description,price,image_url,sort_order").order("sort_order"),
         supabase.from("product_categories").select("product_id,category_id"),
         supabase.from("product_subcategories").select("product_id,subcategory_id"),
+        supabase.from("product_variants").select("id,product_id,label,price,sort_order").order("sort_order"),
       ]);
 
       const pcMap = new Map<string, string[]>();
@@ -155,6 +156,12 @@ Deno.serve(async (req) => {
         arr.push(ps.subcategory_id);
         psMap.set(ps.product_id, arr);
       }
+      const pvMap = new Map<string, any[]>();
+      for (const pv of pvRes.data || []) {
+        const arr = pvMap.get(pv.product_id) || [];
+        arr.push({ id: pv.id, label: pv.label, price: Number(pv.price), sort_order: pv.sort_order });
+        pvMap.set(pv.product_id, arr);
+      }
 
       const [categories, subcategories, farms, products] = await Promise.all([
         Promise.all((catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))),
@@ -166,6 +173,7 @@ Deno.serve(async (req) => {
           description: p.description ? await decryptAES(p.description) : null,
           category_ids: pcMap.get(p.id) || [],
           subcategory_ids: psMap.get(p.id) || [],
+          variants: pvMap.get(p.id) || [],
         }))),
       ]);
 
@@ -180,16 +188,16 @@ Deno.serve(async (req) => {
       // Pre-warm the AES key before parallel decryption
       await getAESKey();
 
-      const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes] = await Promise.all([
+      const [catsRes, subsRes, farmsRes, prodsRes, pcRes, psRes, pvRes] = await Promise.all([
         supabase.from("categories").select("id,name,sort_order").order("sort_order"),
         supabase.from("subcategories").select("id,category_id,name,sort_order").order("sort_order"),
         supabase.from("farms").select("id,name,sort_order").order("sort_order"),
         supabase.from("products").select("id,name,description,price,image_url,sort_order").order("sort_order"),
         supabase.from("product_categories").select("product_id,category_id"),
         supabase.from("product_subcategories").select("product_id,subcategory_id"),
+        supabase.from("product_variants").select("id,product_id,label,price,sort_order").order("sort_order"),
       ]);
 
-      // Build lookup maps for O(1) access
       const pcMap = new Map<string, string[]>();
       for (const pc of pcRes.data || []) {
         const arr = pcMap.get(pc.product_id) || [];
@@ -202,8 +210,13 @@ Deno.serve(async (req) => {
         arr.push(ps.subcategory_id);
         psMap.set(ps.product_id, arr);
       }
+      const pvMap = new Map<string, any[]>();
+      for (const pv of pvRes.data || []) {
+        const arr = pvMap.get(pv.product_id) || [];
+        arr.push({ id: pv.id, label: pv.label, price: Number(pv.price), sort_order: pv.sort_order });
+        pvMap.set(pv.product_id, arr);
+      }
 
-      // Decrypt all in parallel
       const [categories, subcategories, farms, products] = await Promise.all([
         Promise.all((catsRes.data || []).map(async (c: any) => ({ ...c, name: await decryptAES(c.name) }))),
         Promise.all((subsRes.data || []).map(async (s: any) => ({ ...s, name: await decryptAES(s.name) }))),
@@ -214,6 +227,7 @@ Deno.serve(async (req) => {
           description: p.description ? await decryptAES(p.description) : null,
           category_ids: pcMap.get(p.id) || [],
           subcategory_ids: psMap.get(p.id) || [],
+          variants: pvMap.get(p.id) || [],
         }))),
       ]);
 
