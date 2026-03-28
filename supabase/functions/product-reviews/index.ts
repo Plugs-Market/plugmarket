@@ -27,6 +27,52 @@ Deno.serve(async (req) => {
     const { action, product_id, rating, comment, is_anonymous, session_token } =
       await req.json();
 
+    // GET ALL REVIEWS — public
+    if (action === "get_all_reviews") {
+      const { data: reviews, error } = await supabase
+        .from("product_reviews")
+        .select("id, product_id, user_id, rating, comment, is_anonymous, created_at")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) return json({ error: error.message }, 500);
+
+      // Fetch product info
+      const productIds = [...new Set(reviews.map((r: any) => r.product_id))];
+      let productMap: Record<string, { name: string; image_url: string | null }> = {};
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from("products")
+          .select("id, name, image_url")
+          .in("id", productIds);
+        if (products) {
+          for (const p of products) productMap[p.id] = { name: p.name, image_url: p.image_url };
+        }
+      }
+
+      // Fetch usernames
+      const userIds = [...new Set(reviews.filter((r: any) => !r.is_anonymous).map((r: any) => r.user_id))];
+      let usernameMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: users } = await supabase.from("app_users").select("id, username").in("id", userIds);
+        if (users) for (const u of users) usernameMap[u.id] = u.username;
+      }
+
+      const formatted = reviews.map((r: any) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        is_anonymous: r.is_anonymous,
+        username: r.is_anonymous ? null : (usernameMap[r.user_id] || "Utilisateur"),
+        created_at: r.created_at,
+        product_id: r.product_id,
+        product_name: productMap[r.product_id]?.name || "Produit",
+        product_image: productMap[r.product_id]?.image_url || null,
+      }));
+
+      return json({ success: true, reviews: formatted });
+    }
+
     // GET REVIEWS — public, no auth needed
     if (action === "get_reviews") {
       if (!product_id) return json({ error: "product_id requis" }, 400);
@@ -39,7 +85,6 @@ Deno.serve(async (req) => {
 
       if (error) return json({ error: error.message }, 500);
 
-      // Fetch usernames for non-anonymous reviews
       const userIds = [...new Set(reviews.filter((r: any) => !r.is_anonymous).map((r: any) => r.user_id))];
       let usernameMap: Record<string, string> = {};
 

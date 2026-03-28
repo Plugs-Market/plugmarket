@@ -48,83 +48,19 @@ export default function AllReviews() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAllReviews = async () => {
+    const fetch = async () => {
       try {
-        // Fetch reviews
-        const { data: reviewsData } = await supabase
-          .from("product_reviews")
-          .select("id, product_id, user_id, rating, comment, is_anonymous, created_at")
-          .order("created_at", { ascending: false })
-          .limit(50);
-
-        if (!reviewsData || reviewsData.length === 0) {
-          setReviews([]);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch product names
-        const productIds = [...new Set(reviewsData.map((r) => r.product_id))];
-        const { data: productsData } = await supabase
-          .from("products")
-          .select("id, name, image_url")
-          .in("id", productIds);
-
-        const productMap: Record<string, { name: string; image_url: string | null }> = {};
-        productsData?.forEach((p) => {
-          productMap[p.id] = { name: p.name, image_url: p.image_url };
+        const { data, error } = await supabase.functions.invoke("product-reviews", {
+          body: { action: "get_all_reviews" },
         });
-
-        // Fetch usernames for non-anonymous
-        const userIds = [...new Set(reviewsData.filter((r) => !r.is_anonymous).map((r) => r.user_id))];
-        let usernameMap: Record<string, string> = {};
-
-        if (userIds.length > 0) {
-          const { data, error } = await supabase.functions.invoke("product-reviews", {
-            body: { action: "get_reviews", product_id: productIds[0] },
-          });
-          // We'll use the edge function per product to get usernames — but that's inefficient.
-          // Instead, let's just show user_id based info from the reviews themselves.
-          // We'll call the edge function for all unique products to gather usernames.
+        if (!error && data?.success) {
+          setReviews(data.reviews);
         }
-
-        // Fetch usernames via edge function for each unique product
-        const allUsernames: Record<string, string> = {};
-        for (const pid of productIds) {
-          try {
-            const { data } = await supabase.functions.invoke("product-reviews", {
-              body: { action: "get_reviews", product_id: pid },
-            });
-            if (data?.reviews) {
-              data.reviews.forEach((r: any) => {
-                if (!r.is_anonymous && r.username) {
-                  allUsernames[r.user_id] = r.username;
-                }
-              });
-            }
-          } catch {}
-        }
-
-        const formatted: ReviewWithProduct[] = reviewsData.map((r) => ({
-          id: r.id,
-          rating: r.rating,
-          comment: r.comment ?? "",
-          is_anonymous: r.is_anonymous ?? false,
-          username: r.is_anonymous ? null : (allUsernames[r.user_id] || "Utilisateur"),
-          created_at: r.created_at,
-          product_id: r.product_id,
-          product_name: productMap[r.product_id]?.name || "Produit",
-          product_image: productMap[r.product_id]?.image_url || null,
-        }));
-
-        setReviews(formatted);
-      } catch {
-      } finally {
+      } catch {} finally {
         setLoading(false);
       }
     };
-
-    fetchAllReviews();
+    fetch();
   }, []);
 
   const avgRating = reviews.length > 0
@@ -159,7 +95,6 @@ export default function AllReviews() {
               className="rounded-xl border border-border bg-card p-3 space-y-2 cursor-pointer active:scale-[0.98] transition-transform"
               onClick={() => navigate(`/product/${review.product_id}`)}
             >
-              {/* Product info */}
               <div className="flex items-center gap-2.5">
                 {review.product_image ? (
                   <img
@@ -185,7 +120,6 @@ export default function AllReviews() {
                 </div>
               </div>
 
-              {/* User + comment */}
               <div className="flex items-start gap-2 pl-1">
                 <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center mt-0.5 shrink-0">
                   {review.is_anonymous ? (
