@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { User, LogIn, UserPlus, Settings, LogOut, Shield } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 import AdminPanel from "@/components/AdminPanel";
+import SettingsPage from "@/components/SettingsPage";
 
 interface ProfileSectionProps {
   showAdminPanel?: boolean;
@@ -16,9 +17,14 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
   const { user: appUser, loading: authLoading, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<"login" | "register">("login");
+  const [showSettings, setShowSettings] = useState(false);
 
   if (showAdminPanel && (appUser?.grade === "Admin" || appUser?.grade === "Demo Admin") && onAdminBack) {
     return <AdminPanel onBack={onAdminBack} />;
+  }
+
+  if (showSettings && appUser) {
+    return <SettingsPage onBack={() => setShowSettings(false)} />;
   }
 
   if (authLoading) {
@@ -67,11 +73,6 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
 
   const displayName = appUser.username;
   const initials = appUser.username.slice(0, 2).toUpperCase();
-
-  const menuItems = [
-    { icon: Settings, label: "Paramètres" },
-  ];
-
   const isAdmin = appUser.grade === "Admin" || appUser.grade === "Demo Admin";
 
   return (
@@ -100,15 +101,13 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
             <span className="text-primary font-semibold">Panel Admin</span>
           </button>
         )}
-        {menuItems.map(({ icon: Icon, label }) => (
-          <button
-            key={label}
-            className="w-full flex items-center gap-4 p-4 rounded-xl bg-card card-neon-border hover:neon-glow transition-shadow text-left"
-          >
-            <Icon className="text-primary" size={20} />
-            <span className="text-foreground font-medium">{label}</span>
-          </button>
-        ))}
+        <button
+          onClick={() => setShowSettings(true)}
+          className="w-full flex items-center gap-4 p-4 rounded-xl bg-card card-neon-border hover:neon-glow transition-shadow text-left"
+        >
+          <Settings className="text-primary" size={20} />
+          <span className="text-foreground font-medium">Paramètres</span>
+        </button>
         <button
           onClick={logout}
           className="w-full flex items-center gap-4 p-4 rounded-xl bg-card card-neon-border hover:border-destructive/50 transition-all text-left"
