@@ -122,6 +122,9 @@ const ProductPage = () => {
             />
           </div>
         )}
+
+        {/* Avis */}
+        <ProductReviews productId={product.id} />
       </div>
 
       <BottomNav activeTab="menu" onTabChange={() => navigate("/")} />
