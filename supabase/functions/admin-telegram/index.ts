@@ -320,8 +320,26 @@ Deno.serve(async (req) => {
 
       if (error) throw error;
 
+      // Decrypt PII fields
+      const decryptedUsers = await Promise.all(
+        (users || []).map(async (u: any) => {
+          try {
+            return {
+              ...u,
+              username: u.username ? await decrypt(u.username) : null,
+              first_name: u.first_name ? await decrypt(u.first_name) : null,
+              last_name: u.last_name ? await decrypt(u.last_name) : null,
+              language_code: u.language_code ? await decrypt(u.language_code) : null,
+            };
+          } catch {
+            // Fallback for legacy unencrypted data
+            return u;
+          }
+        })
+      );
+
       return new Response(
-        JSON.stringify({ success: true, users: users || [] }),
+        JSON.stringify({ success: true, users: decryptedUsers }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

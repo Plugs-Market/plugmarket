@@ -4,7 +4,23 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 async function getKey(): Promise<CryptoKey> {
   const raw = Deno.env.get("AES_ENCRYPTION_KEY")!;
   const keyBytes = new TextEncoder().encode(raw.slice(0, 32).padEnd(32, "0"));
-  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+
+async function encrypt(text: string): Promise<string> {
+  const key = await getKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(text);
+  const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
+  const combined = new Uint8Array(iv.length + new Uint8Array(cipher).length);
+  combined.set(iv);
+  combined.set(new Uint8Array(cipher), iv.length);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function encryptOrNull(value: string | null | undefined): Promise<string | null> {
+  if (!value) return null;
+  return encrypt(value);
 }
 
 async function decrypt(b64: string): Promise<string> {
@@ -206,15 +222,42 @@ Deno.serve(async (req) => {
     const botToken = await decrypt(config.bot_token_encrypted);
     const tgBase = `https://api.telegram.org/bot${botToken}`;
 
-    // Track user interaction
+    // Track user interaction with encrypted PII
     try {
-      await supabase.rpc("track_telegram_interaction", {
-        p_chat_id: chatId,
-        p_username: from.username || null,
-        p_first_name: from.first_name || null,
-        p_last_name: from.last_name || null,
-        p_language_code: from.language_code || null,
-      });
+      const encUsername = await encryptOrNull(from.username || null);
+      const encFirstName = await encryptOrNull(from.first_name || null);
+      const encLastName = await encryptOrNull(from.last_name || null);
+      const encLangCode = await encryptOrNull(from.language_code || null);
+
+      const { data: existing } = await supabase
+        .from("telegram_interactions")
+        .select("id, message_count")
+        .eq("chat_id", chatId)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from("telegram_interactions")
+          .update({
+            username: encUsername,
+            first_name: encFirstName,
+            last_name: encLastName,
+            language_code: encLangCode,
+            last_seen_at: new Date().toISOString(),
+            message_count: existing.message_count + 1,
+          })
+          .eq("chat_id", chatId);
+      } else {
+        await supabase
+          .from("telegram_interactions")
+          .insert({
+            chat_id: chatId,
+            username: encUsername,
+            first_name: encFirstName,
+            last_name: encLastName,
+            language_code: encLangCode,
+          });
+      }
     } catch (e) {
       console.error("Track interaction error:", e);
     }
