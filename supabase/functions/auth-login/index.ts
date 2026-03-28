@@ -200,6 +200,13 @@ Deno.serve(async (req) => {
     // Reset rate limit on success
     await resetRateLimit(supabase, rateLimitKey);
 
+    // Clean up expired sessions for this user
+    await supabase
+      .from("session_tokens")
+      .delete()
+      .eq("user_id", user.id)
+      .lt("expires_at", new Date().toISOString());
+
     // Generate and persist session token
     const sessionToken = generateSessionToken();
     const tokenHash = await hashTokenSHA256(sessionToken);
