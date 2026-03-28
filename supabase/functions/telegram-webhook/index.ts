@@ -226,7 +226,6 @@ Deno.serve(async (req) => {
 
     // Handle /start command
     if (text.startsWith("/start")) {
-      const from = message.from || {};
 
       if (captchaEnabled) {
         // Delete any existing captcha for this chat
