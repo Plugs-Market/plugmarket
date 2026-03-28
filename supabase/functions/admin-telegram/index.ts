@@ -326,6 +326,57 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "ban_telegram_user") {
+      const { chat_id, reason, duration_hours } = body;
+      if (!chat_id) {
+        return new Response(
+          JSON.stringify({ error: "chat_id manquant" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const banUntil = duration_hours ? new Date(Date.now() + duration_hours * 3600000).toISOString() : null;
+
+      const { error } = await supabase
+        .from("telegram_interactions")
+        .update({
+          is_banned: true,
+          ban_reason: reason || null,
+          ban_until: banUntil,
+          banned_at: new Date().toISOString(),
+        })
+        .eq("chat_id", chat_id);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "unban_telegram_user") {
+      const { chat_id } = body;
+      if (!chat_id) {
+        return new Response(
+          JSON.stringify({ error: "chat_id manquant" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error } = await supabase
+        .from("telegram_interactions")
+        .update({ is_banned: false, ban_reason: null, ban_until: null, banned_at: null })
+        .eq("chat_id", chat_id);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "check_webhook") {
       const { data: cfg } = await supabase
         .from("telegram_config")
