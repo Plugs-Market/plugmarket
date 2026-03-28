@@ -142,6 +142,14 @@ Deno.serve(async (req) => {
 
       if (error) throw error;
 
+      // Set webhook URL
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/telegram-webhook`;
+      await fetch(`https://api.telegram.org/bot${bot_token}/setWebhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: webhookUrl, allowed_updates: ["message"] }),
+      });
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -218,6 +226,20 @@ Deno.serve(async (req) => {
     }
 
     if (action === "disconnect") {
+      // Remove webhook first
+      const { data: cfg } = await supabase
+        .from("telegram_config")
+        .select("bot_token_encrypted")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (cfg?.bot_token_encrypted) {
+        try {
+          const tk = await decrypt(cfg.bot_token_encrypted);
+          await fetch(`https://api.telegram.org/bot${tk}/deleteWebhook`);
+        } catch { /* ignore */ }
+      }
+
       const { error } = await supabase
         .from("telegram_config")
         .update({
