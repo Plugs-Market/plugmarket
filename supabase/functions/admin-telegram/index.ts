@@ -185,6 +185,41 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "get_welcome") {
+      const { data: welcome } = await supabase
+        .from("telegram_welcome")
+        .select("image_url, message_text, buttons")
+        .eq("id", 1)
+        .maybeSingle();
+
+      return new Response(
+        JSON.stringify({ success: true, welcome: welcome || { image_url: null, message_text: "Bienvenue ! 👋", buttons: [] } }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "save_welcome") {
+      const { image_url, message_text, buttons } = await req.json().catch(() => ({}));
+      const body = JSON.parse(await new Response(req.body).text().catch(() => "{}"));
+      
+      const { error } = await supabase
+        .from("telegram_welcome")
+        .update({
+          image_url: image_url ?? null,
+          message_text: message_text || "Bienvenue ! 👋",
+          buttons: buttons || [],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", 1);
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "disconnect") {
       const { error } = await supabase
         .from("telegram_config")
