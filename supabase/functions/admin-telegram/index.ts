@@ -438,6 +438,129 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "broadcast") {
+      const broadcastText = body.message_text || message_text;
+      if (!broadcastText?.trim()) {
+        return new Response(
+          JSON.stringify({ error: "Message manquant" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Get bot token
+      const { data: cfg } = await supabase
+        .from("telegram_config")
+        .select("bot_token_encrypted")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (!cfg?.bot_token_encrypted) {
+        return new Response(
+          JSON.stringify({ error: "Aucun bot configuré" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const botTk = await decrypt(cfg.bot_token_encrypted);
+
+      // Upload image to Telegram if provided
+      let photoFileId: string | null = null;
+      if (body.image_file && body.image_file instanceof File) {
+        const file = body.image_file as File;
+        // We'll send the photo with the first message and reuse file_id for the rest
+        // Store the file for later use
+        const ext = file.name.split(".").pop() || "jpg";
+        const fileName = `broadcast_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("telegram-images")
+          .upload(fileName, file, { contentType: file.type, upsert: true });
+        if (upErr) throw upErr;
+        const { data: pubUrl } = supabase.storage.from("telegram-images").getPublicUrl(fileName);
+        photoFileId = pubUrl.publicUrl;
+      }
+
+      // Build inline keyboard
+      const broadcastButtons = body.buttons ? (typeof body.buttons === "string" ? JSON.parse(body.buttons) : body.buttons) : [];
+      let replyMarkup: any = undefined;
+      if (broadcastButtons.length > 0) {
+        const keyboard = broadcastButtons
+          .filter((b: any) => b.text?.trim() && b.url?.trim())
+          .map((b: any) => {
+            if (b.type === "web_app") {
+              return [{ text: b.text, web_app: { url: b.url } }];
+            }
+            return [{ text: b.text, url: b.url }];
+          });
+        if (keyboard.length > 0) {
+          replyMarkup = { inline_keyboard: keyboard };
+        }
+      }
+
+      // Get all users who interacted with the bot (not banned)
+      const { data: users, error: usersErr } = await supabase
+        .from("telegram_interactions")
+        .select("chat_id")
+        .eq("is_banned", false);
+
+      if (usersErr) throw usersErr;
+
+      let sent = 0;
+      let failed = 0;
+
+      for (const u of (users || [])) {
+        try {
+          let tgRes: Response;
+          if (photoFileId) {
+            // Send photo with caption
+            tgRes = await fetch(`https://api.telegram.org/bot${botTk}/sendPhoto`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: u.chat_id,
+                photo: photoFileId,
+                caption: broadcastText.trim(),
+                parse_mode: "HTML",
+                ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+              }),
+            });
+          } else {
+            // Send text only
+            tgRes = await fetch(`https://api.telegram.org/bot${botTk}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: u.chat_id,
+                text: broadcastText.trim(),
+                parse_mode: "HTML",
+                ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+              }),
+            });
+          }
+
+          const tgResult = await tgRes.json();
+          if (tgResult.ok) {
+            sent++;
+            // Capture file_id from first successful photo send to reuse
+            if (photoFileId && tgResult.result?.photo && sent === 1) {
+              const photos = tgResult.result.photo;
+              photoFileId = photos[photos.length - 1].file_id;
+            }
+          } else {
+            failed++;
+            console.error(`Broadcast failed for ${u.chat_id}:`, tgResult);
+          }
+        } catch (e) {
+          failed++;
+          console.error(`Broadcast error for ${u.chat_id}:`, e);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, sent, failed, total: (users || []).length }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Action inconnue" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
