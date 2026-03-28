@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Bot, Link, Unlink, RefreshCw, Send, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Bot, Link, Unlink, RefreshCw, Send, CheckCircle, XCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -207,6 +207,12 @@ const AdminTelegram = ({ onBack, isReadOnly = false }: AdminTelegramProps) => {
                 Ouvrir @{botInfo?.username} sur Telegram
               </Button>
             </a>
+            {!isReadOnly && (
+              <Button variant="outline" onClick={() => setShowTelegramUsers(true)} className="w-full justify-start">
+                <Users size={16} />
+                Voir les utilisateurs Telegram
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
