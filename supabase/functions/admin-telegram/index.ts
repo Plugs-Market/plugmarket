@@ -69,7 +69,24 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { action, session_token, bot_token, image_url, message_text, buttons } = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let body: any;
+    
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      body = {
+        action: formData.get("action") as string,
+        session_token: formData.get("session_token") as string,
+        message_text: formData.get("message_text") as string,
+        buttons: formData.get("buttons") ? JSON.parse(formData.get("buttons") as string) : undefined,
+        image_file: formData.get("image_file") as File | null,
+        remove_image: formData.get("remove_image") === "true",
+      };
+    } else {
+      body = await req.json();
+    }
+
+    const { action, session_token, bot_token, image_url, message_text, buttons } = body;
 
     const admin = await validateAdmin(supabase, session_token || null);
     if (!admin) {
@@ -207,10 +224,36 @@ Deno.serve(async (req) => {
     }
 
     if (action === "save_welcome") {
+      let finalImageUrl = image_url ?? null;
+
+      // Handle file upload
+      if (body.image_file && body.image_file instanceof File) {
+        const file = body.image_file as File;
+        const ext = file.name.split(".").pop() || "jpg";
+        const fileName = `welcome_${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("telegram-images")
+          .upload(fileName, file, { contentType: file.type, upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrl } = supabase.storage
+          .from("telegram-images")
+          .getPublicUrl(fileName);
+
+        finalImageUrl = publicUrl.publicUrl;
+      }
+
+      // Handle image removal
+      if (body.remove_image) {
+        finalImageUrl = null;
+      }
+
       const { error } = await supabase
         .from("telegram_welcome")
         .update({
-          image_url: image_url ?? null,
+          image_url: finalImageUrl,
           message_text: message_text || "Bienvenue ! 👋",
           buttons: buttons || [],
           updated_at: new Date().toISOString(),
@@ -220,7 +263,7 @@ Deno.serve(async (req) => {
       if (error) throw error;
 
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, image_url: finalImageUrl }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
