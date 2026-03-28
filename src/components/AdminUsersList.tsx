@@ -15,7 +15,7 @@ interface AdminUser {
 
 const GRADES = ["membre", "Demo Admin", "Admin"];
 
-const AdminUsersList = () => {
+const AdminUsersList = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const { user } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,7 +135,7 @@ const AdminUsersList = () => {
                 </span>
               </div>
 
-              {editingUser === u.id ? (
+              {!isReadOnly && editingUser === u.id ? (
                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
                   {GRADES.map((g) => (
                     <Button
@@ -157,7 +157,7 @@ const AdminUsersList = () => {
                     Annuler
                   </Button>
                 </div>
-              ) : (
+              ) : !isReadOnly ? (
                 <div className="flex gap-2 mt-3 pt-3 border-t border-border">
                   <Button
                     size="sm"
@@ -179,7 +179,7 @@ const AdminUsersList = () => {
                     </Button>
                   )}
                 </div>
-              )}
+              ) : null}
             </div>
           ))}
         </div>
