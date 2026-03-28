@@ -512,7 +512,7 @@ const AdminTelegramWelcome = ({ onShowTelegramUsers, isReadOnly = false }: { onS
       </Card>
 
       {/* Telegram Users Button */}
-      {onShowTelegramUsers && (
+      {onShowTelegramUsers && !isReadOnly && (
         <Card className="bg-card card-neon-border">
           <CardContent className="p-4">
             <Button variant="outline" onClick={onShowTelegramUsers} className="w-full justify-start gap-2">
