@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User, LogIn, UserPlus, Settings, ShoppingBag, Heart, Bell, LogOut, Shield } from "lucide-react";
+import { User, LogIn, UserPlus, Settings, LogOut, Shield } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 import AdminPanel from "@/components/AdminPanel";
 
@@ -69,9 +69,6 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
   const initials = appUser.username.slice(0, 2).toUpperCase();
 
   const menuItems = [
-    { icon: ShoppingBag, label: "Mes commandes" },
-    { icon: Heart, label: "Mes favoris" },
-    { icon: Bell, label: "Notifications" },
     { icon: Settings, label: "Paramètres" },
   ];
 
