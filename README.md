@@ -152,7 +152,7 @@ src/
 │   ├── ProductCard.tsx   # Carte produit
 │   └── ...
 ├── hooks/               # Hooks personnalisés (auth, shop data, telegram)
-├── pages/               # Pages (Index, ProductPage, NotFound)
+├── pages/               # Pages (Index, ProductPage, TermsPage, PrivacyPage, NotFound)
 ├── lib/                 # Utilitaires (BBCode, Telegram, utils)
 ├── integrations/        # Client et types Supabase (auto-généré)
 └── data/                # Données statiques
