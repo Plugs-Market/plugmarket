@@ -61,7 +61,14 @@ Deno.serve(async (req) => {
       .eq("id", 1)
       .maybeSingle();
 
-    const text = welcome?.message_text || "Bienvenue ! 👋";
+    // Replace template tags
+    const from = message.from || {};
+    let text = (welcome?.message_text || "Bienvenue ! 👋")
+      .replace(/\{first_name\}/g, from.first_name || "")
+      .replace(/\{last_name\}/g, from.last_name || "")
+      .replace(/\{username\}/g, from.username ? `@${from.username}` : from.first_name || "")
+      .replace(/\{user_id\}/g, String(from.id || ""))
+      .replace(/\{language\}/g, from.language_code || "");
     const imageUrl = welcome?.image_url || null;
     const buttons = (welcome?.buttons as Array<{ text: string; url: string; type: string }>) || [];
 
