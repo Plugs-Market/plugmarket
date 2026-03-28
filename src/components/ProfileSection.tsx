@@ -18,6 +18,7 @@ const ProfileSection = ({ showAdminPanel, onAdminBack, onOpenAdmin }: ProfileSec
   const [authView, setAuthView] = useState<"login" | "register">("login");
 
   if (showAdminPanel && (appUser?.grade === "Admin" || appUser?.grade === "Demo Admin") && onAdminBack) {
+    return <AdminPanel onBack={onAdminBack} />;
   }
 
   if (authLoading) {
