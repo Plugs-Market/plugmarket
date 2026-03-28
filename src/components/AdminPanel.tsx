@@ -6,6 +6,7 @@ import AdminUsersList from "@/components/AdminUsersList";
 import AdminShop from "@/components/AdminShop";
 import AdminTelegram from "@/components/AdminTelegram";
 import AdminFAQ from "@/components/AdminFAQ";
+import AdminWebsite from "@/components/AdminWebsite";
 
 const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       {activeTab === "shop" && <AdminShop onBack={() => setActiveTab("dashboard")} isReadOnly={isReadOnly} />}
       {activeTab === "telegram" && <AdminTelegram onBack={() => setActiveTab("dashboard")} isReadOnly={isReadOnly} />}
       {activeTab === "faq" && <AdminFAQ onBack={() => setActiveTab("dashboard")} isReadOnly={isReadOnly} />}
+      {activeTab === "website" && <AdminWebsite onBack={() => setActiveTab("dashboard")} isReadOnly={isReadOnly} />}
       <AdminBottomNav activeTab={activeTab} onTabChange={setActiveTab} onBack={onBack} />
     </div>
   );
