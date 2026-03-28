@@ -378,6 +378,19 @@ Deno.serve(async (req) => {
         const resData = await res.text();
         console.log("sendPhoto captcha response:", res.status, resData);
 
+        // Save captcha message_id so we can delete it later
+        try {
+          const resJson = JSON.parse(resData);
+          if (resJson.ok && resJson.result?.message_id) {
+            await supabase
+              .from("telegram_captcha")
+              .update({ message_id: resJson.result.message_id })
+              .eq("chat_id", chatId);
+          }
+        } catch (e) {
+          console.error("Failed to save captcha message_id:", e);
+        }
+
         return new Response("OK", { status: 200 });
       }
 
@@ -391,7 +404,7 @@ Deno.serve(async (req) => {
       // Check if there's a pending captcha for this chat
       const { data: pending } = await supabase
         .from("telegram_captcha")
-        .select("id, code, expires_at")
+        .select("id, code, expires_at, message_id")
         .eq("chat_id", chatId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -415,10 +428,23 @@ Deno.serve(async (req) => {
 
         // Check code (case-insensitive)
         if (text.trim().toUpperCase() === pending.code.toUpperCase()) {
-          // Delete captcha
+          // Delete captcha image message from chat
+          if (pending.message_id) {
+            try {
+              await fetch(`${tgBase}/deleteMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, message_id: pending.message_id }),
+              });
+            } catch (e) {
+              console.error("Failed to delete captcha message:", e);
+            }
+          }
+
+          // Delete captcha from DB
           await supabase.from("telegram_captcha").delete().eq("id", pending.id);
 
-          // Send success then welcome
+          // Send welcome
           await sendWelcomeMessage(tgBase, chatId, from, welcome);
         } else {
           await fetch(`${tgBase}/sendMessage`, {
