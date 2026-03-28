@@ -184,6 +184,7 @@ Deno.serve(async (req) => {
 
     const chatId = message.chat.id;
     const text = message.text || "";
+    const from = message.from || {};
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,

@@ -312,6 +312,20 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "list_telegram_users") {
+      const { data: users, error } = await supabase
+        .from("telegram_interactions")
+        .select("*")
+        .order("last_seen_at", { ascending: false });
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true, users: users || [] }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "check_webhook") {
       const { data: cfg } = await supabase
         .from("telegram_config")
