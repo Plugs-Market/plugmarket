@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { action, session_token, bot_token } = await req.json();
+    const { action, session_token, bot_token, image_url, message_text, buttons } = await req.json();
 
     const admin = await validateAdmin(supabase, session_token || null);
     if (!admin) {
@@ -199,9 +199,6 @@ Deno.serve(async (req) => {
     }
 
     if (action === "save_welcome") {
-      const { image_url, message_text, buttons } = await req.json().catch(() => ({}));
-      const body = JSON.parse(await new Response(req.body).text().catch(() => "{}"));
-      
       const { error } = await supabase
         .from("telegram_welcome")
         .update({
