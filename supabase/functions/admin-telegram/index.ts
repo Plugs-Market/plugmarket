@@ -81,6 +81,8 @@ Deno.serve(async (req) => {
         buttons: formData.get("buttons") ? JSON.parse(formData.get("buttons") as string) : undefined,
         image_file: formData.get("image_file") as File | null,
         remove_image: formData.get("remove_image") === "true",
+        captcha_enabled: formData.get("captcha_enabled") as string | null,
+        captcha_message: formData.get("captcha_message") as string | null,
       };
     } else {
       body = await req.json();
