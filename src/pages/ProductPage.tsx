@@ -67,10 +67,27 @@ const ProductPage = () => {
           <h2 className="font-display text-xl font-bold text-foreground">
             {product.name}
           </h2>
-          <span className="text-lg font-bold text-primary whitespace-nowrap">
-            {product.price.toFixed(2)} €
-          </span>
+          {product.variants.length === 0 && (
+            <span className="text-lg font-bold text-primary whitespace-nowrap">
+              {product.price.toFixed(2)} €
+            </span>
+          )}
         </div>
+
+        {/* Variants */}
+        {product.variants.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Déclinaisons</h3>
+            <div className="grid gap-2">
+              {product.variants.map((v, i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-secondary border border-border">
+                  <span className="text-sm font-medium text-foreground">{v.label}</span>
+                  <span className="text-sm font-bold text-primary">{v.price.toFixed(2)} €</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(productCategories.length > 0 || productSubcategories.length > 0) && (
           <div className="flex flex-wrap gap-2">

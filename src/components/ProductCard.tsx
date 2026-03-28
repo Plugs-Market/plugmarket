@@ -46,9 +46,20 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
             {product.description}
           </p>
         )}
-        <div className="card-neon-border rounded-full px-2.5 py-1 inline-flex items-center gap-1.5 text-[10px] text-primary">
-          <span className="font-bold">{product.price.toFixed(2)} €</span>
-        </div>
+        {product.variants.length > 0 ? (
+          <div className="space-y-0.5">
+            {product.variants.map((v, i) => (
+              <div key={i} className="card-neon-border rounded-full px-2.5 py-0.5 inline-flex items-center gap-1.5 text-[10px] text-primary mr-1">
+                <span className="text-muted-foreground">{v.label}</span>
+                <span className="font-bold">{v.price.toFixed(2)} €</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="card-neon-border rounded-full px-2.5 py-1 inline-flex items-center gap-1.5 text-[10px] text-primary">
+            <span className="font-bold">{product.price.toFixed(2)} €</span>
+          </div>
+        )}
       </div>
     </div>
   );
