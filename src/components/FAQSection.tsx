@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
+import { parseBBCode } from "@/lib/bbcode";
 
 interface FAQItem {
   id: string;
@@ -55,7 +56,7 @@ const FAQSection = () => {
                 {faq.question}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-sm">
-                {faq.answer}
+                <div dangerouslySetInnerHTML={{ __html: parseBBCode(faq.answer) }} />
               </AccordionContent>
             </AccordionItem>
           ))}
