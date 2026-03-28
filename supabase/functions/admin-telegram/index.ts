@@ -213,12 +213,12 @@ Deno.serve(async (req) => {
     if (action === "get_welcome") {
       const { data: welcome } = await supabase
         .from("telegram_welcome")
-        .select("image_url, message_text, buttons")
+        .select("image_url, message_text, buttons, captcha_enabled, captcha_message")
         .eq("id", 1)
         .maybeSingle();
 
       return new Response(
-        JSON.stringify({ success: true, welcome: welcome || { image_url: null, message_text: "Bienvenue ! 👋", buttons: [] } }),
+        JSON.stringify({ success: true, welcome: welcome || { image_url: null, message_text: "Bienvenue ! 👋", buttons: [], captcha_enabled: false, captcha_message: "Entrez le code : {captcha}" } }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -250,14 +250,22 @@ Deno.serve(async (req) => {
         finalImageUrl = null;
       }
 
+      const updateData: any = {
+        image_url: finalImageUrl,
+        message_text: message_text || "Bienvenue ! 👋",
+        buttons: buttons || [],
+        updated_at: new Date().toISOString(),
+      };
+      if (body.captcha_enabled !== undefined) {
+        updateData.captcha_enabled = body.captcha_enabled === true || body.captcha_enabled === "true";
+      }
+      if (body.captcha_message !== undefined) {
+        updateData.captcha_message = body.captcha_message || "Entrez le code : {captcha}";
+      }
+
       const { error } = await supabase
         .from("telegram_welcome")
-        .update({
-          image_url: finalImageUrl,
-          message_text: message_text || "Bienvenue ! 👋",
-          buttons: buttons || [],
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", 1);
 
       if (error) throw error;
