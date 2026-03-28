@@ -376,6 +376,9 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}>
                 <Edit2 size={14} />
               </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(p)}>
+                <Copy size={14} />
+              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id, p.name)}>
                 <Trash2 size={14} />
               </Button>
