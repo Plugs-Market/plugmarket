@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { parseBBCode } from "@/lib/bbcode";
+import { Link } from "react-router-dom";
+import { FileText } from "lucide-react";
 
 interface FAQItem {
   id: string;
@@ -62,6 +64,14 @@ const FAQSection = () => {
           ))}
         </Accordion>
       )}
+
+      <Link
+        to="/terms"
+        className="flex items-center gap-2 mt-8 px-4 py-3 rounded-xl bg-card card-neon-border text-sm text-muted-foreground hover:text-primary transition-colors"
+      >
+        <FileText size={16} />
+        Termes et Conditions
+      </Link>
     </div>
   );
 };
