@@ -112,6 +112,36 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
     }
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Vidéo trop lourde (max 50MB)");
+      return;
+    }
+    setUploadingVideo(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+        const data = await callAdmin("upload_product_video", {
+          video_base64: base64,
+          file_name: file.name,
+          content_type: file.type,
+        });
+        if (data?.url) {
+          setForm((f) => ({ ...f, video_url: data.url }));
+          toast.success("Vidéo uploadée");
+        }
+        setUploadingVideo(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploadingVideo(false);
+      toast.error("Erreur upload vidéo");
+    }
+  };
+
   const toggleCategoryId = (id: string) => {
     setForm((f) => {
       const has = f.category_ids.includes(id);
@@ -144,6 +174,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: form.description || null,
       price: parseFloat(form.price) || 0,
       image_url: form.image_url || null,
+      video_url: form.video_url || null,
       category_ids: form.category_ids,
       subcategory_ids: form.subcategory_ids,
       variants: form.variants
