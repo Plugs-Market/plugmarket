@@ -98,6 +98,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    const READ_ACTIONS = ["get_config", "get_welcome", "list_telegram_users", "check_webhook"];
+    if (admin.grade === "Demo Admin" && !READ_ACTIONS.includes(action)) {
+      return new Response(
+        JSON.stringify({ error: "Accès en lecture seule" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "get_config") {
       const { data: config } = await supabase
         .from("telegram_config")
