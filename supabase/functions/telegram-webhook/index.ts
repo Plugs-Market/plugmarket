@@ -24,10 +24,12 @@ Deno.serve(async (req) => {
 
   try {
     const update = await req.json();
+    console.log("Webhook received update:", JSON.stringify(update));
 
     // Only handle /start command
     const message = update?.message;
     if (!message?.text || !message.text.startsWith("/start")) {
+      console.log("Not a /start command, ignoring");
       return new Response("OK", { status: 200 });
     }
 
@@ -46,6 +48,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!config?.bot_token_encrypted) {
+      console.log("No bot token found in config");
       return new Response("OK", { status: 200 });
     }
 
@@ -91,11 +94,13 @@ Deno.serve(async (req) => {
       };
       if (reply_markup) body.reply_markup = reply_markup;
 
-      await fetch(`${tgBase}/sendPhoto`, {
+      const res = await fetch(`${tgBase}/sendPhoto`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      const resData = await res.text();
+      console.log("sendPhoto response:", res.status, resData);
     } else {
       // Send text message with buttons
       const body: any = {
@@ -105,11 +110,13 @@ Deno.serve(async (req) => {
       };
       if (reply_markup) body.reply_markup = reply_markup;
 
-      await fetch(`${tgBase}/sendMessage`, {
+      const res = await fetch(`${tgBase}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      const resData = await res.text();
+      console.log("sendMessage response:", res.status, resData);
     }
 
     return new Response("OK", { status: 200 });

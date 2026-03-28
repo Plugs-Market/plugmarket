@@ -259,6 +259,41 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "check_webhook") {
+      const { data: cfg } = await supabase
+        .from("telegram_config")
+        .select("bot_token_encrypted")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (!cfg?.bot_token_encrypted) {
+        return new Response(
+          JSON.stringify({ error: "Aucun bot configuré" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const tk = await decrypt(cfg.bot_token_encrypted);
+      
+      // Get current webhook info
+      const infoRes = await fetch(`https://api.telegram.org/bot${tk}/getWebhookInfo`);
+      const infoData = await infoRes.json();
+
+      // Re-set webhook
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/telegram-webhook`;
+      const setRes = await fetch(`https://api.telegram.org/bot${tk}/setWebhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: webhookUrl, allowed_updates: ["message"] }),
+      });
+      const setData = await setRes.json();
+
+      return new Response(
+        JSON.stringify({ success: true, webhook_info: infoData, set_result: setData, webhook_url: webhookUrl }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Action inconnue" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
