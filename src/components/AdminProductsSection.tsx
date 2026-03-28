@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Edit2, Package, ImageIcon, X, Copy } from "lucide-react";
+import { Plus, Trash2, Edit2, Package, ImageIcon, X, Copy, Video } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ interface ProductForm {
   description: string;
   price: string;
   image_url: string;
+  video_url: string;
   category_ids: string[];
   subcategory_ids: string[];
   variants: VariantForm[];
@@ -35,6 +36,7 @@ const emptyForm: ProductForm = {
   description: "",
   price: "",
   image_url: "",
+  video_url: "",
   category_ids: [],
   subcategory_ids: [],
   variants: [],
@@ -45,6 +47,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
   const [editProduct, setEditProduct] = useState<DBProduct | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const callAdmin = async (action: string, extra: Record<string, unknown> = {}) => {
     const token = localStorage.getItem("plugs_market_token");
@@ -71,6 +74,7 @@ const AdminProductsSection = ({ products, categories, onRefetch }: Props) => {
       description: p.description || "",
       price: String(p.price),
       image_url: p.image_url || "",
+      video_url: p.video_url || "",
       category_ids: [...p.category_ids],
       subcategory_ids: [...p.subcategory_ids],
       variants: (p.variants || []).map((v) => ({ label: v.label, price: String(v.price) })),
