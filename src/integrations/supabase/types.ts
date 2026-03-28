@@ -342,6 +342,42 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_interactions: {
+        Row: {
+          chat_id: number
+          first_name: string | null
+          first_seen_at: string
+          id: string
+          language_code: string | null
+          last_name: string | null
+          last_seen_at: string
+          message_count: number
+          username: string | null
+        }
+        Insert: {
+          chat_id: number
+          first_name?: string | null
+          first_seen_at?: string
+          id?: string
+          language_code?: string | null
+          last_name?: string | null
+          last_seen_at?: string
+          message_count?: number
+          username?: string | null
+        }
+        Update: {
+          chat_id?: number
+          first_name?: string | null
+          first_seen_at?: string
+          id?: string
+          language_code?: string | null
+          last_name?: string | null
+          last_seen_at?: string
+          message_count?: number
+          username?: string | null
+        }
+        Relationships: []
+      }
       telegram_welcome: {
         Row: {
           buttons: Json
