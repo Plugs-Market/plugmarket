@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!config?.bot_token_encrypted) {
+      console.log("No bot token found in config");
       return new Response("OK", { status: 200 });
     }
 
