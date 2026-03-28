@@ -201,6 +201,7 @@ export type Database = {
           price: number
           sort_order: number
           subcategory_id: string | null
+          video_url: string | null
         }
         Insert: {
           category_id?: string | null
@@ -212,6 +213,7 @@ export type Database = {
           price?: number
           sort_order?: number
           subcategory_id?: string | null
+          video_url?: string | null
         }
         Update: {
           category_id?: string | null
@@ -223,6 +225,7 @@ export type Database = {
           price?: number
           sort_order?: number
           subcategory_id?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {
