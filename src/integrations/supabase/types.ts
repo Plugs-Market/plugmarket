@@ -122,6 +122,36 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          product_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          product_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          product_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_subcategories: {
         Row: {
           id: string

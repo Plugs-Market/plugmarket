@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useShopData } from "@/hooks/useShopData";
 import BottomNav from "@/components/BottomNav";
+import ProductReviews from "@/components/ProductReviews";
 import { ArrowLeft, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -121,6 +122,9 @@ const ProductPage = () => {
             />
           </div>
         )}
+
+        {/* Avis */}
+        <ProductReviews productId={product.id} />
       </div>
 
       <BottomNav activeTab="menu" onTabChange={() => navigate("/")} />
