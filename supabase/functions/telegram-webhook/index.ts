@@ -350,8 +350,8 @@ Deno.serve(async (req) => {
         const captchaMarkup = JSON.stringify({
           inline_keyboard: [
             [
-              { text: "📜 Conditions d'utilisation", url: "https://plugs-market.fr/terms" },
-              { text: "🔒 Confidentialité", url: "https://plugs-market.fr/privacy" },
+              { text: "📜 Conditions d'utilisation", url: "https://v1.plugs-market.fr/terms" },
+              { text: "🔒 Confidentialité", url: "https://v1.plugs-market.fr/privacy" },
             ],
           ],
         });
